@@ -1,0 +1,22 @@
+{
+  "graphics": {
+    "movement tile to image index":{
+      "s":1,
+      "x": 2,
+      " ": 3,
+      "^": 4,
+    },
+    "movement":[
+"sssss",
+"xs s ",
+"x    ",
+"x^^^^"
+],
+    "default tile colors": {
+      "sky": {},
+      "wall": {},
+      "ground": {},
+      "rough": {},
+    }
+  }
+}
