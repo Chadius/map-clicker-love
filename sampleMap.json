@@ -15,7 +15,7 @@
     "default tile color": {
       "sky": {
         "hue": 190,
-        "saturation": 100,
+        "saturation": 15,
         "value": 75
       },
       "wall": {
@@ -25,7 +25,7 @@
       },
       "ground": {
         "hue": 75,
-        "saturation": 50,
+        "saturation": 40,
         "value": 75
       },
       "rough": {

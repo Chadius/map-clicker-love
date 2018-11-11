@@ -1,15 +1,3 @@
--- Sky RGB: 0.64, 0.73, 0.75 (HSV 190, 1.15, 0.75)
--- Wall RGB: 0.1, 0, 0.15 (HSV 280, 1, 0.15)
--- Ground RGB: 0.74, 0.75, 0.71 (HSV 75, 0.5, 0.75)
--- Rough RGB: 0.65, 0.55, 0.36 (HSV 39, 0.45, 0.65)
-
-local colorsByTile2 = {
-   {r = 0.64, g = 0.73, b = 0.75},
-   {r = 0.1,  g = 0,    b = 0.15},
-   {r = 0.74, g = 0.75, b = 0.71},
-   {r = 0.65, g = 0.55, b = 0.36}
-}
-
 local defaultColorsByTile = {}
 local mapTile = {}
 local movementTileToImageIndex = {}
