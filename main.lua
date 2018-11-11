@@ -3,17 +3,16 @@
 -- Ground RGB: 0.74, 0.75, 0.71 (HSV 75, 0.5, 0.75)
 -- Rough RGB: 0.65, 0.55, 0.36 (HSV 39, 0.45, 0.65)
 
-local colorsByTile = {
+local colorsByTile2 = {
    {r = 0.64, g = 0.73, b = 0.75},
    {r = 0.1,  g = 0,    b = 0.15},
    {r = 0.74, g = 0.75, b = 0.71},
    {r = 0.65, g = 0.55, b = 0.36}
 }
 
+local defaultColorsByTile = {}
 local mapTile = {}
 local movementTileToImageIndex = {}
-
-local json = require "json"
 
 function love.load()
    -- Set the resolution
@@ -40,9 +39,26 @@ function readFile(file)
 end
 
 function loadMap()
-
+   local json = require "json"
    mapFile = readFile("sampleMap.json")
    mapJson = json.decode(mapFile)
+
+   -- Load the default tile colors, if we can't find an image.
+   local colorConverter = require "HSVtoRGB"
+   -- For each default tile color
+   for movementTileName, colorDict in pairs(mapJson.graphics["default tile color"]) do
+	  local rgb = {}
+	  local hsv = {}
+	  -- See if hue, value and saturation are there
+	  hsv.h = colorDict.hue
+	  hsv.s = colorDict.saturation / 100.0
+	  hsv.v = colorDict.value / 100.0
+	  --- Convert to RGB values
+	  rgb.r, rgb.g, rgb.b = colorConverter.HSVToRGB(hsv.h, hsv.s, hsv.v)
+
+	  --- Set the default tile color, using the given key.
+	  defaultColorsByTile[movementTileName] = rgb
+   end
 
    -- Get the movement tile key. This maps the character in the movement map to a color.
    for char, index in pairs(mapJson.graphics["movement tile to image index"]) do
@@ -90,7 +106,7 @@ function drawTile(column, row, colorString)
 
    -- Get the RGB color
    local colorIndex = movementTileToImageIndex[colorString]
-   local tileColorRGB = colorsByTile[colorIndex]
+   local tileColorRGB = defaultColorsByTile[colorIndex]
 
    -- Get the Y coordinate
    local y = 64 * row

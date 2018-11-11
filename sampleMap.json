@@ -1,10 +1,10 @@
 {
   "graphics": {
     "movement tile to image index":{
-      "s":1,
-      "x": 2,
-      " ": 3,
-      "^": 4,
+      "s": "sky",
+      "x": "wall",
+      " ": "ground",
+      "^": "rough",
     },
     "movement":[
 "sssss",
@@ -12,11 +12,27 @@
 "x    ",
 "x^^^^"
 ],
-    "default tile colors": {
-      "sky": {},
-      "wall": {},
-      "ground": {},
-      "rough": {},
+    "default tile color": {
+      "sky": {
+        "hue": 190,
+        "saturation": 100,
+        "value": 75
+      },
+      "wall": {
+        "hue": 280,
+        "saturation": 100,
+        "value": 15
+      },
+      "ground": {
+        "hue": 75,
+        "saturation": 50,
+        "value": 75
+      },
+      "rough": {
+        "hue": 39,
+        "saturation": 45,
+        "value": 65
+      },
     }
   }
 }
