@@ -2,6 +2,8 @@ local defaultColorsByTile = {}
 local mapTile = {}
 local movementTileToImageIndex = {}
 
+local clicked = {column=0, row=0}
+
 function love.load()
    -- Set the resolution
    love.window.setMode( 640, 480 )
@@ -17,6 +19,9 @@ end
 
 function love.draw()
    drawMap()
+
+   love.graphics.setColor(0.8,0.8,0.8)
+   love.graphics.print("You clicked on (" .. clicked.column .. ", " .. clicked.row .. ")", 100, 420,0,2,2)
 end
 
 function readFile(file)
@@ -56,8 +61,8 @@ function loadMap()
    -- Get the width of the first map. All rows should be this wide.
    local width = #(mapJson.graphics.movement[1])
 
-   -- Prepare all of the rows of the map
-   for x = 1,width,1 do mapTile[x] = {} end
+   -- Prepare the map.
+   mapTile = {}
 
    local rowIndex,columnIndex = 1,1
 
@@ -66,13 +71,16 @@ function loadMap()
 	  -- Make sure the row is as long as the first row
 	  assert(#row == width, 'Map is not aligned: width of row ' .. tostring(rowIndex) .. ' should be ' .. tostring(width) .. ', but it is ' .. tostring(#row))
 
-	  -- For each character in the row
+	  newRow = {}
 	  columnIndex = 1
 	  for character in row:gmatch(".") do
 		 -- Add a character to this row.
-		 mapTile[rowIndex][columnIndex] = character
+		 newRow[columnIndex] = character
 		 columnIndex = columnIndex + 1
 	  end
+
+	  -- Add the row.
+	  mapTile[rowIndex] = newRow
 
 	  -- Increment the row counter
 	  rowIndex = rowIndex + 1
@@ -97,10 +105,10 @@ function drawTile(column, row, colorString)
    local tileColorRGB = defaultColorsByTile[colorIndex]
 
    -- Get the Y coordinate
-   local y = 64 * row
+   local y = 64 * (row - 1)
 
    -- Get the X coordinate
-   local x = 64 * column
+   local x = 64 * (column - 1)
 
    -- Based on the row, add an offset.
    if row % 2 == 1 then
@@ -109,4 +117,30 @@ function drawTile(column, row, colorString)
 
    love.graphics.setColor(tileColorRGB.r, tileColorRGB.g, tileColorRGB.b)
    love.graphics.rectangle("fill", x, y, 63, 63 )
+end
+
+function love.mousepressed(x, y, button, istouch, presses)
+   if button == 1 then
+	  -- Based on the y coordinate, determine the row.
+	  row = math.floor(y / 64) + 1
+
+	  -- The row will determine the offset.
+	  offset = 0
+	  if row % 2 == 1 then
+		 offset = 64 / 2
+	  end
+
+	  -- Remove the offset from the x coordinate. Based on the x coordinate, determine the column.
+	  column = math.floor((x - offset) / 64) + 1
+
+	  -- make sure the row and column are valid.
+	  if row < 1 or column < 1 then
+		 return
+	  elseif column > #(mapTile[1]) or row > #mapTile then
+		 return
+	  end
+
+   	  clicked.column = column
+	  clicked.row = row
+   end
 end
