@@ -4,36 +4,19 @@ local movementTileToImageIndex = {}
 
 local clicked = {column=0, row=0}
 
-function love.load()
-   -- Set the resolution
-   love.window.setMode( 640, 480 )
-
-   -- Allow users to repeat keyboard presses.
-   love.keyboard.setKeyRepeat(true)
-
-   loadMap()
+MapClass={}
+MapClass.prototype={
+   mapTile={},
+   movementTileToImageIndex={},
+   defaultColorsByTile={},
+}
+function MapClass:new()
+   self:load{}
+   return self
 end
-
-function love.update(dt)
-end
-
-function love.draw()
-   drawMap()
-
-   love.graphics.setColor(0.8,0.8,0.8)
-   love.graphics.print("You clicked on (" .. clicked.column .. ", " .. clicked.row .. ")", 100, 420,0,2,2)
-end
-
-function readFile(file)
-    local f = assert(io.open(file, "rb"))
-    local content = f:read("*all")
-    f:close()
-    return content
-end
-
-function loadMap()
+function MapClass:load ()
    local json = require "json"
-   mapFile = readFile("sampleMap.json")
+   mapFile = self:readFile("sampleMap.json")
    mapJson = json.decode(mapFile)
 
    -- Load the default tile colors, if we can't find an image.
@@ -85,21 +68,20 @@ function loadMap()
 	  -- Increment the row counter
 	  rowIndex = rowIndex + 1
    end
-end
 
-function drawMap()
+   return self
+end
+function MapClass:draw()
    -- For each row
    for i,row in ipairs(mapTile) do
 	  -- For each column
 	  for j,column in ipairs(row) do
 		 -- Get the tile index
-		 drawTile(j,i,row[j])
+		 self:drawTile(j,i,row[j])
 	  end
    end
 end
-
-function drawTile(column, row, colorString)
-
+function MapClass:drawTile(column, row, colorString)
    -- Get the RGB color
    local colorIndex = movementTileToImageIndex[colorString]
    local tileColorRGB = defaultColorsByTile[colorIndex]
@@ -118,29 +100,65 @@ function drawTile(column, row, colorString)
    love.graphics.setColor(tileColorRGB.r, tileColorRGB.g, tileColorRGB.b)
    love.graphics.rectangle("fill", x, y, 63, 63 )
 end
+function MapClass:readFile(file)
+    local f = assert(io.open(file, "rb"))
+    local content = f:read("*all")
+    f:close()
+    return content
+end
+function MapClass:getCoordinateClickedOn(x, y)
+   -- Based on the y coordinate, determine the row.
+   row = math.floor(y / 64) + 1
+
+   -- The row will determine the offset.
+   offset = 0
+   if row % 2 == 1 then
+	  offset = 64 / 2
+   end
+
+   -- Remove the offset from the x coordinate. Based on the x coordinate, determine the column.
+   column = math.floor((x - offset) / 64) + 1
+
+   -- make sure the row and column are valid.
+   if row < 1 or column < 1 then
+	  return nil, nil
+   elseif column > #(mapTile[1]) or row > #mapTile then
+	  return nil, nil
+   end
+
+   return column, row
+end
+
+local mapObject = nil
+
+function love.load()
+   -- Set the resolution
+   love.window.setMode( 640, 480 )
+
+   -- Allow users to repeat keyboard presses.
+   love.keyboard.setKeyRepeat(true)
+
+   mapObject = MapClass:new{}
+   mapObject:load()
+end
+
+function love.update(dt)
+end
+
+function love.draw()
+   mapObject:draw()
+
+   love.graphics.setColor(0.8,0.8,0.8)
+   love.graphics.print("You clicked on (" .. clicked.column .. ", " .. clicked.row .. ")", 100, 420,0,2,2)
+end
 
 function love.mousepressed(x, y, button, istouch, presses)
    if button == 1 then
-	  -- Based on the y coordinate, determine the row.
-	  row = math.floor(y / 64) + 1
+	  column, row = mapObject:getCoordinateClickedOn(x, y)
 
-	  -- The row will determine the offset.
-	  offset = 0
-	  if row % 2 == 1 then
-		 offset = 64 / 2
+	  if column ~= nil then
+		 clicked.column = column
+		 clicked.row = row
 	  end
-
-	  -- Remove the offset from the x coordinate. Based on the x coordinate, determine the column.
-	  column = math.floor((x - offset) / 64) + 1
-
-	  -- make sure the row and column are valid.
-	  if row < 1 or column < 1 then
-		 return
-	  elseif column > #(mapTile[1]) or row > #mapTile then
-		 return
-	  end
-
-   	  clicked.column = column
-	  clicked.row = row
    end
 end
