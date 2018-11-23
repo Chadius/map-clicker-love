@@ -109,12 +109,20 @@ function MapClass:drawSelectedTile(column, row)
   local x, y = getTileCoordinate(column, row)
   if x == nil or y == nil then return end
 
-  love.graphics.setColor(255,255,255)
-  love.graphics.rectangle("fill", x - 1, y - 1, tileSize, 3 )
-  love.graphics.rectangle("fill", x - 1, y - 1 + 3, 3, tileSize )
+  -- Choose the color based on the time elapsed.
+  timestamp = love.timer.getTime()
+  -- We'll use the sine function to get how White or Black it should glow.
+  -- Change the period to about every 2 seconds.
+  intensity = math.sin (timestamp * math.pi)
+  -- Shift the results from (-1, 1) to (0, 1)
+  intensity = (intensity / 2) + 0.5
 
-  love.graphics.rectangle("fill", x + tileSize - 1, y - 1, 3, tileSize )
-  love.graphics.rectangle("fill", x + 1, y + tileSize - 1, tileSize + 1, 3 )
+  -- Draw the outlined tile.
+  love.graphics.setColor(intensity, intensity, intensity)
+  love.graphics.rectangle("fill", x - 1, y - 1, tileSize, 3, 0.7)
+  love.graphics.rectangle("fill", x - 1, y - 1 + 3, 3, tileSize, 0.7)
+  love.graphics.rectangle("fill", x + tileSize - 1, y - 1, 3, tileSize, 0.7)
+  love.graphics.rectangle("fill", x + 1, y + tileSize - 1, tileSize + 1, 3, 0.7)
 end
 function MapClass:draw()
   -- For each row
