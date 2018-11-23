@@ -1,20 +1,21 @@
-local defaultColorsByTile = {}
-local mapTile = {}
-local movementTileToImageIndex = {}
+local function readFile(file)
+    local f = assert(io.open(file, "rb"))
+    local content = f:read("*all")
+    f:close()
+    return content
+end
 
 MapClass={}
-MapClass.prototype={
-   mapTile={},
-   movementTileToImageIndex={},
-   defaultColorsByTile={},
-}
 function MapClass:new()
+  self.mapTile={}
+  self.movementTileToImageIndex={}
+  self.defaultColorsByTile={}
    self:load{}
    return self
 end
 function MapClass:load ()
    local json = require "json"
-   mapFile = self:readFile("sampleMap.json")
+   mapFile = readFile("sampleMap.json")
    mapJson = json.decode(mapFile)
 
    -- Load the default tile colors, if we can't find an image.
@@ -31,19 +32,19 @@ function MapClass:load ()
 	  rgb.r, rgb.g, rgb.b = colorConverter.HSVToRGB(hsv.h, hsv.s, hsv.v)
 
 	  --- Set the default tile color, using the given key.
-	  defaultColorsByTile[movementTileName] = rgb
+	  self.defaultColorsByTile[movementTileName] = rgb
    end
 
    -- Get the movement tile key. This maps the character in the movement map to a color.
    for char, index in pairs(mapJson.graphics["movement tile to image index"]) do
-	  movementTileToImageIndex[char] = index
+	  self.movementTileToImageIndex[char] = index
    end
 
    -- Get the width of the first map. All rows should be this wide.
    local width = #(mapJson.graphics.movement[1])
 
    -- Prepare the map.
-   mapTile = {}
+   self.mapTile = {}
 
    local rowIndex,columnIndex = 1,1
 
@@ -61,7 +62,7 @@ function MapClass:load ()
 	  end
 
 	  -- Add the row.
-	  mapTile[rowIndex] = newRow
+	  self.mapTile[rowIndex] = newRow
 
 	  -- Increment the row counter
 	  rowIndex = rowIndex + 1
@@ -71,38 +72,13 @@ function MapClass:load ()
 end
 function MapClass:draw()
    -- For each row
-   for i,row in ipairs(mapTile) do
+   for i,row in ipairs(self.mapTile) do
 	  -- For each column
 	  for j,column in ipairs(row) do
 		 -- Get the tile index
 		 self:drawTile(j,i,row[j])
 	  end
    end
-end
-function MapClass:drawTile(column, row, colorString)
-   -- Get the RGB color
-   local colorIndex = movementTileToImageIndex[colorString]
-   local tileColorRGB = defaultColorsByTile[colorIndex]
-
-   -- Get the Y coordinate
-   local y = 64 * (row - 1)
-
-   -- Get the X coordinate
-   local x = 64 * (column - 1)
-
-   -- Based on the row, add an offset.
-   if row % 2 == 1 then
-	  x = x + 32
-   end
-
-   love.graphics.setColor(tileColorRGB.r, tileColorRGB.g, tileColorRGB.b)
-   love.graphics.rectangle("fill", x, y, 63, 63 )
-end
-function MapClass:readFile(file)
-    local f = assert(io.open(file, "rb"))
-    local content = f:read("*all")
-    f:close()
-    return content
 end
 function MapClass:getCoordinateClickedOn(x, y)
    -- Based on the y coordinate, determine the row.
@@ -120,11 +96,33 @@ function MapClass:getCoordinateClickedOn(x, y)
    -- make sure the row and column are valid.
    if row < 1 or column < 1 then
 	  return nil, nil
-   elseif column > #(mapTile[1]) or row > #mapTile then
+  elseif column > #(self.mapTile[1]) or row > #self.mapTile then
 	  return nil, nil
    end
 
    return column, row
+end
+
+-- TODO import love utility or split into gfx class
+
+function MapClass:drawTile(column, row, colorString)
+   -- Get the RGB color
+   local colorIndex = self.movementTileToImageIndex[colorString]
+   local tileColorRGB = self.defaultColorsByTile[colorIndex]
+
+   -- Get the Y coordinate
+   local y = 64 * (row - 1)
+
+   -- Get the X coordinate
+   local x = 64 * (column - 1)
+
+   -- Based on the row, add an offset.
+   if row % 2 == 1 then
+	  x = x + 32
+   end
+
+   love.graphics.setColor(tileColorRGB.r, tileColorRGB.g, tileColorRGB.b)
+   love.graphics.rectangle("fill", x, y, 63, 63 )
 end
 
 return MapClass
