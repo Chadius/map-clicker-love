@@ -22,9 +22,14 @@ end
 
 function love.draw()
   mapObject:draw()
+  mapObject:drawSelectedTile(clicked.column, clicked.row)
 
   love.graphics.setColor(0.8,0.8,0.8)
-  love.graphics.print("You clicked on (" .. clicked.column .. ", " .. clicked.row .. ")", 100, 420,0,2,2)
+  if column ~= nil and row ~= nil then
+    love.graphics.print("You clicked on (" .. clicked.column .. ", " .. clicked.row .. ")", 100, 420,0,2,2)
+  else
+    love.graphics.print("Click on the map.", 100, 420,0,2,2)
+  end
 end
 function love.keypressed(key)
   if key == "escape" then
@@ -38,6 +43,10 @@ function love.mousepressed(x, y, button, istouch, presses)
     if column ~= nil then
       clicked.column = column
       clicked.row = row
+    else
+      -- If the user clicked off screen, deselect.
+      clicked.column = nil
+      clicked.row = nil
     end
   end
 end
