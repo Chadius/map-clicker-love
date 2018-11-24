@@ -5,12 +5,9 @@ local function readFile(file)
   return content
 end
 
-require 'mapDrawing'
-
 MapClass={}
 function MapClass:new()
   self.mapTile={}
-  self.drawing = mapDrawing:new()
   return self
 end
 function MapClass:load()
@@ -18,8 +15,8 @@ function MapClass:load()
   mapFile = readFile("sampleMap.json")
   mapJson = json.decode(mapFile)
 
-  -- Load tile information.
-  self.drawing:load()
+  -- Load graphical information.
+  self.drawing:load(mapJson)
 
   -- Get the width of the first map. All rows should be this wide.
   local width = #(mapJson.graphics.movement[1])
@@ -57,8 +54,8 @@ end
 function MapClass:draw()
   self.drawing:draw(self.mapTile)
 end
-function MapClass:getCoordinateClickedOn(x, y)
-  return self.drawing:getCoordinateClickedOn(x, y,
+function MapClass:getTileClickedOn(x, y)
+  return self.drawing:getTileClickedOn(x, y,
     #(self.mapTile[1]), -- width
     #self.mapTile -- height
   )

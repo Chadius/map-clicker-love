@@ -2,9 +2,8 @@ local defaultColorsByTile = {}
 local mapTile = {}
 local movementTileToImageIndex = {}
 
-local clicked = {column=0, row=0}
-
 local mapObject = nil
+local mapSelector = nil
 function love.load()
   -- Set the resolution
   love.window.setMode( 640, 480 )
@@ -13,8 +12,13 @@ function love.load()
   love.keyboard.setKeyRepeat(true)
 
   require 'mapClass'
+  require 'mapDrawing'
   mapObject = MapClass:new{}
+  mapObject.drawing = MapDrawing:new{}
   mapObject:load()
+
+  require 'mapSelector'
+  mapSelector = MapSelector:new{}
 end
 
 function love.update(dt)
@@ -22,11 +26,11 @@ end
 
 function love.draw()
   mapObject:draw()
-  mapObject:drawSelectedTile(clicked.column, clicked.row)
+  mapObject:drawSelectedTile(mapSelector.column, mapSelector.row)
 
   love.graphics.setColor(0.8,0.8,0.8)
-  if column ~= nil and row ~= nil then
-    love.graphics.print("You clicked on (" .. clicked.column .. ", " .. clicked.row .. ")", 100, 420,0,2,2)
+  if mapSelector.column ~= nil and mapSelector.row ~= nil then
+    love.graphics.print("You clicked on (" .. mapSelector.column .. ", " .. mapSelector.row .. ")", 100, 420,0,2,2)
   else
     love.graphics.print("Click on the map.", 100, 420,0,2,2)
   end
@@ -37,16 +41,9 @@ function love.keypressed(key)
   end
 end
 function love.mousepressed(x, y, button, istouch, presses)
+  -- If the left mouse button is clicked, update the map selector.
   if button == 1 then
-    column, row = mapObject:getCoordinateClickedOn(x, y)
-
-    if column ~= nil then
-      clicked.column = column
-      clicked.row = row
-    else
-      -- If the user clicked off screen, deselect.
-      clicked.column = nil
-      clicked.row = nil
-    end
+    local column, row = mapObject:getTileClickedOn(x, y)
+    mapSelector:selectTile(column, row)
   end
 end

@@ -6,18 +6,14 @@ local function readFile(file)
   return content
 end
 
-mapDrawing={}
-function mapDrawing:new()
+MapDrawing={}
+function MapDrawing:new()
   self.movementTileToImageIndex={}
   self.defaultColorsByTile={}
   self.tileSize = 64
   return self
 end
-function mapDrawing:load()
-  local json = require "json"
-  mapFile = readFile("sampleMap.json")
-  mapJson = json.decode(mapFile)
-
+function MapDrawing:load(mapJson)
   -- Load the default tile colors, if we can't find an image.
   local colorConverter = require "HSVtoRGB"
   -- For each default tile color
@@ -75,7 +71,7 @@ local function drawTile(self, column, row, colorString)
   love.graphics.setColor(0, 0, 0, 0.2)
   love.graphics.rectangle("line", x, y, self.tileSize, self.tileSize)
 end
-function mapDrawing:drawSelectedTile(column, row)
+function MapDrawing:drawSelectedTile(column, row)
   -- Draw the selected square located at the given column and row.
   local x, y = getTileCoordinate(column, row, self.tileSize)
   if x == nil or y == nil then return end
@@ -95,7 +91,7 @@ function mapDrawing:drawSelectedTile(column, row)
   love.graphics.rectangle("fill", x + self.tileSize - 1, y - 1, 3, self.tileSize, 0.7)
   love.graphics.rectangle("fill", x + 1, y + self.tileSize - 1, self.tileSize + 1, 3, 0.7)
 end
-function mapDrawing:draw(mapTile)
+function MapDrawing:draw(mapTile)
   -- For each row
   for i,row in ipairs(mapTile) do
     -- For each column
@@ -105,7 +101,11 @@ function mapDrawing:draw(mapTile)
     end
   end
 end
-function mapDrawing:getCoordinateClickedOn(x, y, width, height)
+function MapDrawing:getTileClickedOn(x, y, width, height)
+  --[[ Returns the column and row of the tile clicked.
+      Returns nil, nil if there is no such tile.
+  --]]
+
   -- Based on the y coordinate, determine the row.
   row = math.floor(y / self.tileSize) + 1
 
