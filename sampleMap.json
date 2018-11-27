@@ -12,30 +12,27 @@
 "x    ",
 "x^^^^"
 ],
-    "default tile color": {
-      "sky": {
-        "hue": 190,
-        "saturation": 15,
-        "value": 75
-      },
-      "wall": {
-        "hue": 280,
-        "saturation": 100,
-        "value": 15
-      },
-      "ground": {
-        "hue": 75,
-        "saturation": 40,
-        "value": 75
-      },
-      "rough": {
-        "hue": 39,
-        "saturation": 45,
-        "value": 65
-      },
-    },
-    "terrainImage": {
-        "filename" : "basicTerrain.png"
+    "terrain image": {
+        "filename" : "basicTerrain.png",
+        "quad size" : 64,
+        "terrain quads" : {
+            "ground" : {
+                "x" : 0,
+                "y" : 0
+            },
+            "sky" : {
+                "x" : 0,
+                "y" : 1
+            },
+            "wall" : {
+                "x" : 1,
+                "y" : 0
+            },
+            "rough" : {
+                "x" : 1,
+                "y" : 1
+            }
+        }
     }
   }
 }

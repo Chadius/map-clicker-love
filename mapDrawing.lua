@@ -9,7 +9,6 @@ end
 MapDrawing={}
 function MapDrawing:new()
   self.movementTileToImageIndex={}
-  self.defaultColorsByTile={}
   self.tileSize = 64
   self.mapTileSpriteSheet = nil
   self.mapTileImageByTerrain = {}
@@ -17,43 +16,22 @@ function MapDrawing:new()
 end
 function MapDrawing:load(mapJson)
   -- Get the terrain sprite sheet.
-  self.mapTileSpriteSheet = love.graphics.newImage(mapJson["graphics"]["terrainImage"]["filename"])
-  local terrainToIndexMappings = {}
-  terrainToIndexMappings["sky"]={x=0, y=1}
-  terrainToIndexMappings["ground"] = {x=0, y=0}
-  terrainToIndexMappings["wall"] = {x=1, y=0}
-  terrainToIndexMappings["rough"] = {x=1, y=1}
+  self.mapTileSpriteSheet = love.graphics.newImage(mapJson["graphics"]["terrain image"]["filename"])
   local imageWidth = self.mapTileSpriteSheet:getWidth()
   local imageHeight = self.mapTileSpriteSheet:getHeight()
+  local quadSize = mapJson["graphics"]["terrain image"]["quad size"]
 
-  for terrainName, coords in pairs(terrainToIndexMappings) do
-    xPixel = coords["x"] * self.tileSize
-    yPixel = coords["y"] * self.tileSize
+  for terrainName, coords in pairs(mapJson["graphics"]["terrain image"]["terrain quads"]) do
+    xPixel = coords["x"] * quadSize
+    yPixel = coords["y"] * quadSize
     self.mapTileImageByTerrain[terrainName] = love.graphics.newQuad(
       xPixel,
       yPixel,
-      self.tileSize,
-      self.tileSize,
+      quadSize,
+      quadSize,
       imageWidth,
       imageHeight
     )
-  end
-
-  -- Load the default tile colors, if we can't find an image.
-  local colorConverter = require "HSVtoRGB"
-  -- For each default tile color
-  for movementTileName, colorDict in pairs(mapJson.graphics["default tile color"]) do
-    local rgb = {}
-    local hsv = {}
-    -- See if hue, value and saturation are there
-    hsv.h = colorDict.hue
-    hsv.s = colorDict.saturation / 100.0
-    hsv.v = colorDict.value / 100.0
-    --- Convert to RGB values
-    rgb.r, rgb.g, rgb.b = colorConverter.HSVToRGB(hsv.h, hsv.s, hsv.v)
-
-    --- Set the default tile color, using the given key.
-    self.defaultColorsByTile[movementTileName] = rgb
   end
 
   -- Get the movement tile key. This maps the character in the movement map to a color.
@@ -82,8 +60,8 @@ local function getTileCoordinate(column, row, tileSize)
   return x, y
 end
 local function drawTile(self, column, row, colorString)
-  local colorIndex = self.movementTileToImageIndex[colorString]
-  local tileImage = self.mapTileImageByTerrain[colorIndex]
+  local quadIndex = self.movementTileToImageIndex[colorString]
+  local tileImage = self.mapTileImageByTerrain[quadIndex]
   local x, y = getTileCoordinate(column, row, self.tileSize)
 
   if tileImage ~= nil then
@@ -91,16 +69,8 @@ local function drawTile(self, column, row, colorString)
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(self.mapTileSpriteSheet, tileImage, x, y)
   else
-    -- If the tile doesn't exist, get the default color as a fallback.
-    -- Get the RGB color
-    local tileColorRGB = self.defaultColorsByTile[colorIndex]
-
-    if tileColorRGB ~= nil then
-      love.graphics.setColor(tileColorRGB.r, tileColorRGB.g, tileColorRGB.b, 1)
-    else
-      -- We'll use a neon purple color if we can't find a backup color.
-      love.graphics.setColor(0.84, 0.48, 0.72, 1)
-    end
+    -- If the tile doesn't exist, we'll use a neon purple color if we can't find a backup color.
+    love.graphics.setColor(0.84, 0.48, 0.72, 1)
     love.graphics.rectangle("fill", x, y, self.tileSize, self.tileSize)
   end
 
