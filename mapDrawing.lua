@@ -11,9 +11,34 @@ function MapDrawing:new()
   self.movementTileToImageIndex={}
   self.defaultColorsByTile={}
   self.tileSize = 64
+  self.mapTileSpriteSheet = nil
+  self.mapTileImageByTerrain = {}
   return self
 end
 function MapDrawing:load(mapJson)
+  -- Get the terrain sprite sheet.
+  self.mapTileSpriteSheet = love.graphics.newImage("basicTerrain.png")
+  local terrainToIndexMappings = {}
+  terrainToIndexMappings["sky2"]={x=0, y=1}
+  terrainToIndexMappings["ground2"] = {x=0, y=0}
+  terrainToIndexMappings["wall2"] = {x=1, y=0}
+  terrainToIndexMappings["rough2"] = {x=1, y=1}
+  local imageWidth = self.mapTileSpriteSheet:getWidth()
+  local imageHeight = self.mapTileSpriteSheet:getHeight()
+
+  for terrainName, coords in pairs(terrainToIndexMappings) do
+    xPixel = coords["x"] * self.tileSize
+    yPixel = coords["y"] * self.tileSize
+    self.mapTileImageByTerrain[terrainName] = love.graphics.newQuad(
+      xPixel,
+      yPixel,
+      self.tileSize,
+      self.tileSize,
+      imageWidth,
+      imageHeight
+    )
+  end
+
   -- Load the default tile colors, if we can't find an image.
   local colorConverter = require "HSVtoRGB"
   -- For each default tile color
@@ -57,15 +82,27 @@ local function getTileCoordinate(column, row, tileSize)
   return x, y
 end
 local function drawTile(self, column, row, colorString)
-  -- Get the RGB color
   local colorIndex = self.movementTileToImageIndex[colorString]
-  local tileColorRGB = self.defaultColorsByTile[colorIndex]
-
+  local tileImage = self.mapTileImageByTerrain[colorIndex]
   local x, y = getTileCoordinate(column, row, self.tileSize)
 
-  -- Draw the tile
-  love.graphics.setColor(tileColorRGB.r, tileColorRGB.g, tileColorRGB.b)
-  love.graphics.rectangle("fill", x, y, self.tileSize, self.tileSize)
+  if tileImage ~= nil then
+    -- Draw the tile
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(self.mapTileSpriteSheet, tileImage, x, y)
+  else
+    -- If the tile doesn't exist, get the default color as a fallback.
+    -- Get the RGB color
+    local tileColorRGB = self.defaultColorsByTile[colorIndex]
+
+    if tileColorRGB ~= nil then
+      love.graphics.setColor(tileColorRGB.r, tileColorRGB.g, tileColorRGB.b, 1)
+    else
+      -- We'll use a neon purple color if we can't find a backup color.
+      love.graphics.setColor(0.84, 0.48, 0.72, 1)
+    end
+    love.graphics.rectangle("fill", x, y, self.tileSize, self.tileSize)
+  end
 
   -- Draw the outline around the tile
   love.graphics.setColor(0, 0, 0, 0.2)
