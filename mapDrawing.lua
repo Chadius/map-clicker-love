@@ -17,12 +17,12 @@ function MapDrawing:new()
 end
 function MapDrawing:load(mapJson)
   -- Get the terrain sprite sheet.
-  self.mapTileSpriteSheet = love.graphics.newImage("basicTerrain.png")
+  self.mapTileSpriteSheet = love.graphics.newImage(mapJson["graphics"]["terrainImage"]["filename"])
   local terrainToIndexMappings = {}
-  terrainToIndexMappings["sky2"]={x=0, y=1}
-  terrainToIndexMappings["ground2"] = {x=0, y=0}
-  terrainToIndexMappings["wall2"] = {x=1, y=0}
-  terrainToIndexMappings["rough2"] = {x=1, y=1}
+  terrainToIndexMappings["sky"]={x=0, y=1}
+  terrainToIndexMappings["ground"] = {x=0, y=0}
+  terrainToIndexMappings["wall"] = {x=1, y=0}
+  terrainToIndexMappings["rough"] = {x=1, y=1}
   local imageWidth = self.mapTileSpriteSheet:getWidth()
   local imageHeight = self.mapTileSpriteSheet:getHeight()
 

@@ -33,6 +33,9 @@
         "saturation": 45,
         "value": 65
       },
+    },
+    "terrainImage": {
+        "filename" : "basicTerrain.png"
     }
   }
 }
