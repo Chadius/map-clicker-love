@@ -4,6 +4,9 @@ local movementTileToImageIndex = {}
 
 local mapObject = nil
 local mapSelector = nil
+
+local playerLocation = {x=0,y=0}
+
 function love.load()
   -- Set the resolution
   love.window.setMode( 640, 480 )
@@ -11,10 +14,13 @@ function love.load()
   -- Allow users to repeat keyboard presses.
   love.keyboard.setKeyRepeat(true)
 
+  require 'graphicsContext'
+  graphicsContext = GraphicsContext:new{}
+
   require 'mapClass'
   require 'mapDrawing'
   mapObject = MapClass:new{}
-  mapObject.drawing = MapDrawing:new{}
+  mapObject.drawing = MapDrawing:new(graphicsContext)
   mapObject:load()
 
   require 'mapSelector'
@@ -27,6 +33,9 @@ end
 function love.draw()
   mapObject:draw()
   mapObject:drawSelectedTile(mapSelector.column, mapSelector.row)
+
+  love.graphics.setColor(0.3,0.1,0.1)
+  love.graphics.rectangle( "fill", 20, 400, 48, 48 )
 
   love.graphics.setColor(0.8,0.8,0.8)
   if mapSelector.column ~= nil and mapSelector.row ~= nil then

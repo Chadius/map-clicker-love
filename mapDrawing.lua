@@ -7,9 +7,9 @@ local function readFile(file)
 end
 
 MapDrawing={}
-function MapDrawing:new()
+function MapDrawing:new(graphicsContext)
   self.movementTileToImageIndex={}
-  self.tileSize = 64
+  self.tileSize = graphicsContext:getTileSize()
   self.mapTileSpriteSheet = nil
   self.mapTileImageByTerrain = {}
   return self
