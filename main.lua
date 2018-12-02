@@ -4,6 +4,7 @@ local movementTileToImageIndex = {}
 
 local mapObject = nil
 local mapSelector = nil
+local graphicsContext = nil
 
 local playerLocation = {x=0,y=0}
 
@@ -31,12 +32,18 @@ function love.update(dt)
 end
 
 function love.draw()
+  -- Draw the map
   mapObject:draw()
   mapObject:drawSelectedTile(mapSelector.column, mapSelector.row)
 
-  love.graphics.setColor(0.3,0.1,0.1)
-  love.graphics.rectangle( "fill", 20, 400, 48, 48 )
+  -- Draw the Units
+  if mapSelector.column ~= nil then
+    love.graphics.setColor(0.3,0.1,0.1)
+    local unitX, unitY = graphicsContext:getTileCoordinate(mapSelector.column, mapSelector.row)
+    love.graphics.rectangle( "fill", unitX + 8, unitY + 14, 48, 48 )
+  end
 
+  -- Draw where you clicked
   love.graphics.setColor(0.8,0.8,0.8)
   if mapSelector.column ~= nil and mapSelector.row ~= nil then
     love.graphics.print("You clicked on (" .. mapSelector.column .. ", " .. mapSelector.row .. ")", 100, 420,0,2,2)
