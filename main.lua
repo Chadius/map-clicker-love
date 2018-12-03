@@ -6,8 +6,6 @@ local mapObject = nil
 local mapSelector = nil
 local graphicsContext = nil
 
-local playerLocation = {x=0,y=0}
-
 function love.load()
   -- Set the resolution
   love.window.setMode( 640, 480 )
@@ -26,6 +24,10 @@ function love.load()
 
   require 'mapSelector'
   mapSelector = MapSelector:new{}
+
+  require 'mapUnit'
+  require 'mapUnitDrawing'
+  mapUnit = MapUnit.new()
 end
 
 function love.update(dt)
