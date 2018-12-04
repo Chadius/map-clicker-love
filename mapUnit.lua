@@ -16,8 +16,15 @@ function MapUnit:moveToTile(column, row)
   -- Indicate the unit should move to the given location on the map.
   self.column = column
   self.row = row
+
+  -- Tell the graphics you want to animate the tile moving over to the destination.
+end
+function MapUnit:finishedMoving()
+  -- Function to signal the unit finished moving to the destination.
+  print("Callback: Finished moving.")
 end
 function MapUnit:draw()
+  -- TODO replace with generic draw function
   if self.column ~= nil and self.row ~= nil then
     self.drawing:drawOnTile(self.column, self.row)
   end
