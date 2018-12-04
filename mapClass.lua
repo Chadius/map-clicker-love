@@ -8,6 +8,7 @@ end
 MapClass={}
 function MapClass:new()
   self.mapTile={}
+  self.drawing=nil
   return self
 end
 function MapClass:load()

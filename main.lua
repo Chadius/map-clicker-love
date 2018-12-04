@@ -27,10 +27,12 @@ function love.load()
 
   require 'mapUnit'
   require 'mapUnitDrawing'
-  mapUnit = MapUnit.new()
+  mapUnit = MapUnit:new()
+  mapUnit.drawing = MapUnitDrawing:new(graphicsContext)
 end
 
 function love.update(dt)
+  mapUnit:update()
 end
 
 function love.draw()
@@ -39,11 +41,7 @@ function love.draw()
   mapObject:drawSelectedTile(mapSelector.column, mapSelector.row)
 
   -- Draw the Units
-  if mapSelector.column ~= nil then
-    love.graphics.setColor(0.3,0.1,0.1)
-    local unitX, unitY = graphicsContext:getTileCoordinate(mapSelector.column, mapSelector.row)
-    love.graphics.rectangle( "fill", unitX + 8, unitY + 14, 48, 48 )
-  end
+  mapUnit:draw()
 
   -- Draw where you clicked
   love.graphics.setColor(0.8,0.8,0.8)
@@ -63,5 +61,7 @@ function love.mousepressed(x, y, button, istouch, presses)
   if button == 1 then
     local column, row = mapObject:getTileClickedOn(x, y)
     mapSelector:selectTile(column, row)
+    -- Move the unit to the selected location
+    mapUnit:moveToTile(column, row)
   end
 end
