@@ -32,7 +32,7 @@ function love.load()
 end
 
 function love.update(dt)
-  mapUnit:update()
+  mapUnit:update(dt)
 end
 
 function love.draw()
