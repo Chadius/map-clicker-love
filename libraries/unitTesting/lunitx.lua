@@ -1,5 +1,5 @@
-local atexit = require "lunitx.atexit"
-local lunit = require "lunit"
+local atexit = require "libraries/unitTesting/lunitx/atexit"
+local lunit = require "libraries/unitTesting/lunit"
 
 --for k,v in pairs(debug.getinfo(1,"S")) do print(k,v) end
 -- autonameing
