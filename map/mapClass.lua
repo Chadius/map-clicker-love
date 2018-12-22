@@ -12,7 +12,7 @@ function MapClass:new()
   return self
 end
 function MapClass:load()
-  local json = require "json"
+  local json = require "reader/json"
   mapFile = readFile("sampleMap.json")
   mapJson = json.decode(mapFile)
 

@@ -13,20 +13,20 @@ function love.load()
   -- Allow users to repeat keyboard presses.
   love.keyboard.setKeyRepeat(true)
 
-  require 'graphicsContext'
+  require 'audiovisual/graphicsContext'
   graphicsContext = GraphicsContext:new{}
 
-  require 'mapClass'
-  require 'mapDrawing'
+  require 'map/mapClass'
+  require 'map/mapDrawing'
   mapObject = MapClass:new{}
   mapObject.drawing = MapDrawing:new(graphicsContext)
   mapObject:load()
 
-  require 'mapSelector'
+  require 'map/mapSelector'
   mapSelector = MapSelector:new{}
 
-  require 'mapUnit'
-  require 'mapUnitDrawing'
+  require 'mapUnit/mapUnit'
+  require 'mapUnit/mapUnitDrawing'
   mapUnit = MapUnit:new()
   mapUnit.drawing = MapUnitDrawing:new(graphicsContext)
 end
