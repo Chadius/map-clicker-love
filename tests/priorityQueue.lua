@@ -10,11 +10,9 @@ end
 local foobar = nil
 
 function setup()
-  foobar = "Hello World"
 end
 
 function teardown()
-  foobar = nil
 end
 
 function test_empty_priority_queue()
