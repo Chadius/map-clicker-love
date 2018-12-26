@@ -87,11 +87,11 @@ local function nextMapSearch(payload)
   end
 
   -- Pop the top of the queue. Set the payload's top.
-  top_path = payload["paths"]:pop()
-  step = top_path[1]
-  payload["top"] = step
-  column = step["column"]
-  row = step["row"]
+  local topPath = payload["paths"]:pop()
+  payload["top"] = topPath
+  local step = topPath[ #topPath ]
+  local column = step["column"]
+  local row = step["row"]
 
   -- Mark the location as visited
   if payload["visited"][column] == nil then
@@ -110,6 +110,15 @@ add_neighbors
 should_stop
 
 Your object must provide the add_neighbors and should_stop functions.
+
+payload is a table containing:
+  origin - A table with the "column" and "row" indecies
+  top - The current observed path
+  paths - A priority queue containing all of the paths to points on the map, sorted by movement cost.
+  map - This MapClass object
+
+  stop_search
+  visited
 --]]
 function MapClass:searchMap(functions, origin)
   -- origin must contain a row and column
@@ -161,4 +170,51 @@ function MapClass:searchMap(functions, origin)
 
   -- Return the paths
   return payload
+end
+
+function MapClass:isOnMap(coordinate)
+  -- Returns true if the coordinate is on the map.
+
+  local mapWidth = #(self.mapTile[1])
+  local mapHeight = #self.mapTile
+
+  if coordinate["column"] < 1 or coordinate["row"] < 1 then
+    return false
+  end
+
+  if coordinate["column"] > mapWidth or coordinate["row"] > mapHeight then
+    return false
+  end
+
+  return true
+end
+
+function MapClass:getNeighboringCoordinates(centralCoordinate)
+  --[[ Return the coordinates surrounding the central coordinate
+  --]]
+  local neighbors = {}
+
+  local direction = {}
+  table.insert(direction, {column_adj= 0, row_adj=-1})
+  table.insert(direction, {column_adj= 1, row_adj=-1})
+  table.insert(direction, {column_adj= 1, row_adj= 0})
+  table.insert(direction, {column_adj= 1, row_adj= 1})
+  table.insert(direction, {column_adj= 0, row_adj= 1})
+  table.insert(direction, {column_adj=-1, row_adj= 0})
+
+  -- for each direction
+  for i, adjustment in ipairs(direction) do
+    -- Map to the changes to column and row.
+    newCoordinate = {
+      column=centralCoordinate["column"] + adjustment["column_adj"],
+      row=centralCoordinate["row"] + adjustment["row_adj"]
+    }
+
+    -- if it's on the map
+    if newCoordinate["column"] > 0 and newCoordinate["row"] > 0 then
+      -- Add it to the results.
+      table.insert(neighbors, newCoordinate)
+    end
+  end
+  return neighbors
 end
