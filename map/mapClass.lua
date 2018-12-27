@@ -100,25 +100,86 @@ local function nextMapSearch(payload)
   payload["visited"][column][row] = 1
 end
 
+local function getRawNeighbors(payload, centralCoordinate)
+  --[[ Return the coordinates surrounding the central coordinate
+  --]]
+  local neighbors = {}
+
+  local direction = {}
+  table.insert(direction, {column_adj= 0, row_adj=-1})
+  table.insert(direction, {column_adj= 1, row_adj=-1})
+  table.insert(direction, {column_adj= 1, row_adj= 0})
+  table.insert(direction, {column_adj= 1, row_adj= 1})
+  table.insert(direction, {column_adj= 0, row_adj= 1})
+  table.insert(direction, {column_adj=-1, row_adj= 0})
+
+  local map = payload["map"]
+
+  -- for each direction
+  for i, adjustment in ipairs(direction) do
+    -- Map to the changes to column and row.
+    newCoordinate = {
+      column=centralCoordinate["column"] + adjustment["column_adj"],
+      row=centralCoordinate["row"] + adjustment["row_adj"]
+    }
+
+    -- If the coordinate is on the map
+    local onMap = map:isOnMap(newCoordinate)
+
+    -- if it's on the map
+    if onMap then
+      -- Add it to the results.
+      table.insert(neighbors, newCoordinate)
+    end
+  end
+  return neighbors
+end
+
+local function shouldAddToSearch(payload, coord)
+  -- Returns true if this coord should be added to the search.
+
+  local map = payload["map"]
+
+  -- If the coordinate is on the map
+  local onMap = map:isOnMap(coord)
+
+  -- If the coordinate has not been visited
+  local alreadyVisited = map:isAlreadyVisited(payload, coord)
+
+  -- if it's on the map
+  if onMap and alreadyVisited ~= true then
+    -- Add it to the results.
+    return true
+  end
+
+  return false
+end
+
 --[[ Search functions
-Create generic search functions that works against a map.
-Here's the function order:
+functions: A table that lets you customize the search.
+  start - Has a default (see startMapSearch). Initializes search parameters.
+  next - Has a default (see nextMapSearch). Gets the next path to observe and
+    marks a location as visited.
+  get_raw_neighbors - Has a default (see getRawNeighbors). Based on the top path
+    returned by next(), return a list of neighbors, not filtered.
+  should_add_to_search_1 - Has a default (see TODO). Returns a boolean to
+    determine if this coordinate should be added to the search. Default has
+    basic filtering options.
+  should_add_to_search_2 - Returns a boolean to determine if this coordinate
+    should be added to the search.
+  (DEPRECATED) add_neighbors - This function will add neighbors to the search.
+  should_stop - Sets payload["stop_search"] to true if the search should end.
 
-start
-next
-add_neighbors
-should_stop
-
-Your object must provide the add_neighbors and should_stop functions.
+origin: A table with the column and row where you want to begin the search.
 
 payload is a table containing:
   origin - A table with the "column" and "row" indecies
   top - The current observed path
-  paths - A priority queue containing all of the paths to points on the map, sorted by movement cost.
+  paths - A priority queue containing all of the paths to points on the map,
+    sorted by movement cost.
   map - This MapClass object
-
-  stop_search
-  visited
+  stop_search - A boolean value indicating if the search should stop now.
+  visited - A dict marking the columns and rows than have been visited.
 --]]
 function MapClass:searchMap(functions, origin)
   -- origin must contain a row and column
@@ -129,16 +190,11 @@ function MapClass:searchMap(functions, origin)
     return nil
   end
 
-  -- functions must have add_neighbors and should_stop functions
-  if functions == nil or
-    type(functions) ~= "table" or
-    functions["add_neighbors"] == nil or
-    functions["should_stop"] == nil then
-    return nil
-  end
-
+  -- If any functions are missing, apply the default functions
   functions["start"] = functions["start"] or startMapSearch
   functions["next"] = functions["next"] or nextMapSearch
+  functions["get_raw_neighbors"] = functions["get_raw_neighbors"] or getRawNeighbors
+  functions["should_add_to_search_1"] = functions["should_add_to_search_1"] or shouldAddToSearch
 
   local payload = {}
   payload["paths"] = PriorityQueue()
@@ -161,8 +217,41 @@ function MapClass:searchMap(functions, origin)
       break
     end
 
-    -- Add neighbors
-    functions["add_neighbors"](payload)
+    -- Get the raw neighbors
+    local topPath = payload["top"]
+    local step = topPath[ #topPath ]
+    local rawNeighbors = functions["get_raw_neighbors"](payload, step)
+
+    -- Filter the neighbors
+
+    -- Get the origin
+    local origin = payload["origin"]
+
+    -- Get the adjacent coordinates to the top
+    local neighbors = {}
+
+    for i, coord in ipairs(rawNeighbors) do
+      local coordColumn = coord["column"]
+      local coordRow = coord["row"]
+
+      local firstFilterPass = functions["should_add_to_search_1"](payload, coord)
+
+      if firstFilterPass then
+        -- Run the custom second pass
+        local secondFilterPass = functions["should_add_to_search_2"](payload, coord)
+
+        if secondFilterPass then
+          -- Add the coordinate to the neighbors
+          table.insert(neighbors, {
+            column=coordColumn,
+            row=coordRow,
+            cost=1
+          })
+        end
+      end
+    end
+    -- Using the new neighbors, generate new paths
+    self:addNewPathsWithNeighbors(payload, neighbors)
 
     -- See if we should stop the search
     functions["should_stop"](payload)
@@ -194,9 +283,9 @@ function MapClass:isAlreadyVisited(payload, coordinate)
   local coordColumn = coordinate["column"]
   local coordRow = coordinate["row"]
 
-  local alreadyVisited = (payload["visited"][coordColumn] and payload["visited"][coordColumn][coordRow])
+  local alreadyVisited = (payload["visited"][coordColumn] ~= nil and payload["visited"][coordColumn][coordRow] ~= nil)
 
-  return alreadyVisited
+  return (alreadyVisited == true)
 end
 
 function MapClass:getNeighboringCoordinates(centralCoordinate)

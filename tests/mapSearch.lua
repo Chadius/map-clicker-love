@@ -25,8 +25,13 @@ function teardown()
   testMap = nil
 end
 
-function add_neighbors_null(payload)
+function dont_get_raw_neighbors(payload)
+  return {}
+end
+
+function add_neighbors_null(payload, coord)
   -- Add no neighbors
+  return false
 end
 
 function stop_when_empty(payload)
@@ -55,13 +60,14 @@ function test_bad_params()
   assert_equal(search_results, nil)
 end
 
-function atest_no_movement()
+function test_no_movement()
   -- Start searching in the middle of the map.
   -- Stop after 1 iteration.
   -- Results should have 1 item, the start point.
 
   local functions = {
-    add_neighbors=add_neighbors_null,
+    get_raw_neighbors=dont_get_raw_neighbors,
+    should_add_to_search_2=add_neighbors_null,
     should_stop=stop_when_empty
   }
 
@@ -89,40 +95,18 @@ function atest_no_movement()
   assert_equal(3, search_results["origin"]["row"])
 end
 
-function add_neighbors_adjacent_to_origin(payload)
+function add_neighbors_adjacent_to_origin(payload, coord)
   -- Only add neighbors adjacent to the start point.
 
   -- Get the origin
   local origin = payload["origin"]
 
-  -- Get the adjacent coordinates to the top
-  local topPath = payload["top"]
-  local step = topPath[ #topPath ]
-  local map = payload["map"]
+  -- And it is less than 1 row and column away from the origin
+  local coordColumn = coord["column"]
+  local coordRow = coord["row"]
+  local adjacentToOrigin = (math.abs(coordColumn - origin["column"]) < 2 and math.abs(coordRow - origin["row"]) < 2)
 
-  local rawNeighbors = map:getNeighboringCoordinates(step)
-  local neighbors = {}
-
-  for i, coord in ipairs(rawNeighbors) do
-    local coordColumn = coord["column"]
-    local coordRow = coord["row"]
-    -- If the coordinate has not been visited
-    local alreadyVisited = map:isAlreadyVisited(payload, coord)
-
-    -- And it is less than 1 row and column away from the origin
-    local adjacentToOrigin = (math.abs(coordColumn - origin["column"]) < 2 and math.abs(coordRow - origin["row"]) < 2)
-
-    if adjacentToOrigin and alreadyVisited == nil then
-      -- Add the coordinate to the neighbors
-      table.insert(neighbors, {
-        column=coordColumn,
-        row=coordRow,
-        cost=1
-      })
-    end
-  end
-
-  map:addNewPathsWithNeighbors(payload, neighbors)
+  return (adjacentToOrigin == true)
 end
 
 function test_check_for_neighbors()
@@ -131,7 +115,7 @@ function test_check_for_neighbors()
   -- Results should have 7 items.
 
   local functions = {
-    add_neighbors=add_neighbors_adjacent_to_origin,
+    should_add_to_search_2=add_neighbors_adjacent_to_origin,
     should_stop=stop_when_empty
   }
 
