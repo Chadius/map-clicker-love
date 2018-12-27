@@ -107,43 +107,22 @@ function add_neighbors_adjacent_to_origin(payload)
     local coordColumn = coord["column"]
     local coordRow = coord["row"]
     -- If the coordinate has not been visited
-    local alreadyVisited = (payload["visited"][coordColumn] and payload["visited"][coordColumn][coordRow])
+    local alreadyVisited = map:isAlreadyVisited(payload, coord)
 
-    -- If the coordinate is on the map
-    local onMap = map:isOnMap(coord)
     -- And it is less than 1 row and column away from the origin
     local adjacentToOrigin = (math.abs(coordColumn - origin["column"]) < 2 and math.abs(coordRow - origin["row"]) < 2)
 
-    if onMap and adjacentToOrigin and alreadyVisited == nil then
+    if adjacentToOrigin and alreadyVisited == nil then
       -- Add the coordinate to the neighbors
-      table.insert(neighbors, coord)
+      table.insert(neighbors, {
+        column=coordColumn,
+        row=coordRow,
+        cost=1
+      })
     end
   end
 
-  -- Make new paths for the neighbors
-  for i, neighbor in ipairs(neighbors) do
-    -- Clone the top path
-    local newPath = {}
-
-    for i, step in ipairs(topPath) do
-      table.insert(newPath, step)
-    end
-
-    -- Add this new neighbor but with a cost of 1
-    local cost = topPath[1]["cost"]
-    local newCost = cost + 1
-    table.insert(
-      newPath,
-      {
-        column=neighbor["column"],
-        row=neighbor["row"],
-        cost=newCost
-      }
-    )
-
-    -- Add this to the paths
-    payload["paths"]:put(newPath, newCost)
-  end
+  map:addNewPathsWithNeighbors(payload, neighbors)
 end
 
 function test_check_for_neighbors()

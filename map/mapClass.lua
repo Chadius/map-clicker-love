@@ -189,6 +189,16 @@ function MapClass:isOnMap(coordinate)
   return true
 end
 
+function MapClass:isAlreadyVisited(payload, coordinate)
+  -- Returns true if the coordinate has already been visited
+  local coordColumn = coordinate["column"]
+  local coordRow = coordinate["row"]
+
+  local alreadyVisited = (payload["visited"][coordColumn] and payload["visited"][coordColumn][coordRow])
+
+  return alreadyVisited
+end
+
 function MapClass:getNeighboringCoordinates(centralCoordinate)
   --[[ Return the coordinates surrounding the central coordinate
   --]]
@@ -210,11 +220,45 @@ function MapClass:getNeighboringCoordinates(centralCoordinate)
       row=centralCoordinate["row"] + adjustment["row_adj"]
     }
 
+    -- If the coordinate is on the map
+    local onMap = self:isOnMap(centralCoordinate)
+
     -- if it's on the map
-    if newCoordinate["column"] > 0 and newCoordinate["row"] > 0 then
+    if onMap then
       -- Add it to the results.
       table.insert(neighbors, newCoordinate)
     end
   end
   return neighbors
+end
+
+function MapClass:addNewPathsWithNeighbors(payload, neighbors)
+  -- Make new paths for the given neighbors.
+  -- Neighbors are a table containing the column, row and movment cost to the neighbor.
+
+  local topPath = payload["top"]
+  local step = topPath[ #topPath ]
+
+  for i, neighbor in ipairs(neighbors) do
+    -- Clone the top path
+    local newPath = {}
+
+    for i, step in ipairs(topPath) do
+      table.insert(newPath, step)
+    end
+
+    -- Add this new neighbor but with the neighbor's cost
+    local newCost = step["cost"] + neighbor["cost"]
+    table.insert(
+      newPath,
+      {
+        column=neighbor["column"],
+        row=neighbor["row"],
+        cost=newCost
+      }
+    )
+
+    -- Add this to the paths
+    payload["paths"]:put(newPath, newCost)
+  end
 end
