@@ -174,7 +174,3 @@ function test_check_for_neighbors()
     assert_true(expected["found"], "(" .. expected["column"] .. "," .. expected["row"] ..") not found")
   end
 end
-
-function test_combine_visited()
-  -- Reuse multiple searches to combine visited areas.
-end
