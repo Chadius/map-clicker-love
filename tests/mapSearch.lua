@@ -110,9 +110,9 @@ function add_neighbors_adjacent_to_origin(payload, coord)
 end
 
 function test_check_for_neighbors()
-  -- Start searching in the middle of the map.
+  -- Start searching in a corner of the map.
   -- Add neighbors on the map, maximum cost is 1.
-  -- Results should have 7 items.
+  -- Results should have 3 items.
 
   local functions = {
     should_add_to_search_2=add_neighbors_adjacent_to_origin,
@@ -126,7 +126,7 @@ function test_check_for_neighbors()
 
   local search_results = testMap:searchMap(functions, origin)
 
-  -- There are 3 visited locations
+  -- There are 4 visited locations
   local visited_locations = search_results["visited"]
 
   -- (1,1)
@@ -141,5 +141,40 @@ function test_check_for_neighbors()
   assert_not_equal(nil, visited_locations[1])
   assert_not_equal(nil, visited_locations[1][2])
 
-  -- TODO: Make a list of locations
+  --(2,2)
+  assert_not_equal(nil, visited_locations[1])
+  assert_not_equal(nil, visited_locations[1][2])
+
+  -- Should have visited 4 locations
+  all_visited = testMap:getAllVisitedLocationsFromPayload(search_results)
+  assert_equal(4, #all_visited)
+
+  -- Make sure the visited locations have the expected ones
+  expected_visited = {
+    {column=1,row=1},
+    {column=1,row=2},
+    {column=2,row=1},
+    {column=2,row=2}
+  }
+
+  -- For each expected location
+  for i, expected in ipairs(expected_visited) do
+    -- Look through the actual visited locations to see if they match.
+    for j, actual in ipairs(all_visited) do
+      if actual["column"] == expected["column"] and actual["row"] == expected["row"] then
+        -- Found this location. Mark it as true and look at the next expected one.
+        expected["found"] = true
+        break
+      end
+    end
+  end
+
+  -- Assert all of them were found.
+  for i, expected in ipairs(expected_visited) do
+    assert_true(expected["found"], "(" .. expected["column"] .. "," .. expected["row"] ..") not found")
+  end
+end
+
+function test_combine_visited()
+  -- Reuse multiple searches to combine visited areas.
 end

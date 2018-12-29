@@ -351,3 +351,19 @@ function MapClass:addNewPathsWithNeighbors(payload, neighbors)
     payload["paths"]:put(newPath, newCost)
   end
 end
+
+function MapClass:getAllVisitedLocationsFromPayload(payload)
+  -- Return a table containing one table for each visited entry.
+  visited = {}
+
+  -- Iterate from each column
+  for column, column_table in pairs(payload["visited"]) do
+    -- Iterate from each row
+    for row, row_found in pairs(column_table) do
+      -- If it's not nil, add it to the visited locations
+      table.insert(visited, {column=column, row=row})
+    end
+  end
+
+  return visited
+end
