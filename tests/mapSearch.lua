@@ -9,6 +9,7 @@ else
 end
 
 local test_map = nil
+local test_search = nil
 
 function setup()
   -- Test Map is a 3x3 grid
@@ -18,11 +19,14 @@ function setup()
     {1,1,1},
     {1,1,1}
   }
+
+  testSearch = MapSearch:new(testMap)
 end
 
 function teardown()
   -- Clear Test Map
   testMap = nil
+  testSearch = nil
 end
 
 function dont_get_raw_neighbors(payload)
@@ -34,30 +38,36 @@ function add_neighbors_null(payload, coord)
   return false
 end
 
-function stop_when_empty(payload)
+function stop_when_empty(mapSearch)
   -- Stop searching as soon as the available paths are empty
-  if payload["paths"]:empty() == 0 then
-    payload["stop_search"] = true
+  if mapSearch.paths:empty() == 0 then
+    mapSearch.stop_search = true
   end
 end
 
-function test_bad_params()
+function skip_test_bad_params()
   -- Make sure an origin and functions are passed.
   functions = {
     add_neighbors=add_neighbors_null,
     should_stop=stop_when_empty
   }
 
-  search_results = testMap:searchMap(functions, nil)
+  testSearch:searchMap(functions, nil)
+
+  assert_equal(testSearch.search_errors, "origin needs column and row")
   assert_equal(search_results, nil)
 
   origin = {
     column=1,
     row=1
   }
+  -- Pass in an origin, but no functions
+  testSearch:searchMap(nil, origin)
+  assert_equal(testSearch.search_errors, "function parameter should be a table")
 
-  search_results = testMap:searchMap(nil, orign)
-  assert_equal(search_results, nil)
+  -- Pass in the function table, but without needed functions
+  testSearch:searchMap({}, origin)
+  assert_equal(testSearch.search_errors, "function table is missing should_add_to_search_2")
 end
 
 function test_no_movement()
@@ -76,30 +86,33 @@ function test_no_movement()
     row=3
   }
 
-  local search_results = testMap:searchMap(functions, origin)
-
-  -- There is only 1 visited point, at (2,3)
-  local visited_locations = search_results["visited"]
+  testSearch:searchMap(functions, origin)
 
   -- Only 1 column was visited, at the origin, column 2
-  assert_not_equal(nil, visited_locations[2])
+  assert_not_equal(nil, testSearch.visited[2])
 
   -- Only 1 row in that column was visited, row 3
-  assert_not_equal(nil, visited_locations[2][3])
+  assert_not_equal(nil, testSearch.visited[2][3])
 
   -- The search was stopped
-  assert_true(search_results["stop_search"])
+  assert_true(testSearch.stop_search)
 
   -- Confirm the origin is (2,3)
-  assert_equal(2, search_results["origin"]["column"])
-  assert_equal(3, search_results["origin"]["row"])
+  assert_equal(2, testSearch.origin["column"])
+  assert_equal(3, testSearch.origin["row"])
+
+  -- There is only 1 visited point, at (2,3)
+  all_visited = testSearch:getAllVisitedLocations()
+  assert_equal(1, #all_visited)
+  assert_equal(2, all_visited[1]["column"])
+  assert_equal(3, all_visited[1]["row"])
 end
 
-function add_neighbors_adjacent_to_origin(payload, coord)
+function add_neighbors_adjacent_to_origin(mapSearch, coord)
   -- Only add neighbors adjacent to the start point.
 
   -- Get the origin
-  local origin = payload["origin"]
+  local origin = mapSearch.origin
 
   -- And it is less than 1 row and column away from the origin
   local coordColumn = coord["column"]
@@ -124,10 +137,10 @@ function test_check_for_neighbors()
     row=1
   }
 
-  local search_results = testMap:searchMap(functions, origin)
+  testSearch:searchMap(functions, origin)
 
   -- There are 4 visited locations
-  local visited_locations = search_results["visited"]
+  local visited_locations = testSearch.visited
 
   -- (1,1)
   assert_not_equal(nil, visited_locations[1])
@@ -146,7 +159,8 @@ function test_check_for_neighbors()
   assert_not_equal(nil, visited_locations[1][2])
 
   -- Should have visited 4 locations
-  all_visited = testMap:getAllVisitedLocationsFromPayload(search_results)
+
+  all_visited = testSearch:getAllVisitedLocations()
   assert_equal(4, #all_visited)
 
   -- Make sure the visited locations have the expected ones

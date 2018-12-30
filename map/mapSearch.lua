@@ -1,42 +1,42 @@
 local PriorityQueue = require "map/priorityQueue"
 
-local function startMapSearch(payload)
+local function startMapSearch(self)
   -- Default map start.
 
   -- Add the start point as a path.
   local start_point = {}
   local new_point = {}
-  new_point["column"] = payload["origin"]["column"]
-  new_point["row"] = payload["origin"]["row"]
+  new_point["column"] = self.origin["column"]
+  new_point["row"] = self.origin["row"]
   new_point["cost"] = 0
 
   table.insert(start_point, new_point)
 
-  payload["paths"]:put(start_point, new_point["cost"])
+  self.paths:put(start_point, new_point["cost"])
 end
 
-local function nextMapSearch(payload)
+local function nextMapSearch(self)
   -- If the paths are empty, stop the search now.
-  if payload["paths"]:empty() then
-    payload["stop_search"] = true
+  if self.paths:empty() then
+    self.stop_search = true
     return
   end
 
-  -- Pop the top of the queue. Set the payload's top.
-  local topPath = payload["paths"]:pop()
-  payload["top"] = topPath
+  -- Pop the top of the queue. Set the top.
+  local topPath = self.paths:pop()
+  self.top = topPath
   local step = topPath[ #topPath ]
   local column = step["column"]
   local row = step["row"]
 
   -- Mark the location as visited
-  if payload["visited"][column] == nil then
-    payload["visited"][column] = {}
+  if self.visited[column] == nil then
+    self.visited[column] = {}
   end
-  payload["visited"][column][row] = 1
+  self.visited[column][row] = 1
 end
 
-local function getRawNeighbors(payload, centralCoordinate)
+local function getRawNeighbors(self, centralCoordinate)
   --[[ Return the coordinates surrounding the central coordinate
   --]]
   local neighbors = {}
@@ -49,7 +49,7 @@ local function getRawNeighbors(payload, centralCoordinate)
   table.insert(direction, {column_adj= 0, row_adj= 1})
   table.insert(direction, {column_adj=-1, row_adj= 0})
 
-  local map = payload["map"]
+  local map = self.map
 
   -- for each direction
   for i, adjustment in ipairs(direction) do
@@ -71,17 +71,16 @@ local function getRawNeighbors(payload, centralCoordinate)
   return neighbors
 end
 
-local function shouldAddToSearch(payload, coord)
+local function shouldAddToSearch(self, coord)
   -- Returns true if this coord should be added to the search.
 
-  local map = payload["map"]
+  local map = self.map
 
   -- If the coordinate is on the map
   local onMap = map:isOnMap(coord)
 
   -- If the coordinate has not been visited
-  self = payload["self"]
-  local alreadyVisited = self:isAlreadyVisited(payload, coord)
+  local alreadyVisited = self:isAlreadyVisited(coord)
 
   -- if it's on the map
   if onMap and alreadyVisited ~= true then
@@ -94,9 +93,21 @@ end
 
 MapSearch={}
 function MapSearch:new(map)
-  self.map=map
+  self.origin = nil
+  self.top = nil
+  self.paths = PriorityQueue()
+  self.map = map
+  self.stop_search = false
+  self.visited = {}
+  self.functions = {
+    start=nil,
+    next=nil,
+    get_raw_neighbors=nil,
+    should_add_to_search_1=nil,
+    should_add_to_search_2=nil,
+  }
+  self.search_errors = nil
 
-  -- TODO Move payload into fields
   return self
 end
 
@@ -132,46 +143,62 @@ function MapSearch:searchMap(functions, origin)
     type(origin) ~= "table" or
     origin["column"] == nil or
     origin["row"] == nil then
+    self.search_errors = "origin needs column and row"
     return nil
   end
 
   -- If any functions are missing, apply the default functions
+  if functions == nil or
+    type(functions) ~= "table" then
+    self.search_errors = "function parameter should be a table"
+    return nil
+  end
+  if functions["should_add_to_search_2"] == nil then
+    self.search_errors = "function table is missing should_add_to_search_2"
+    return nil
+  end
+
   functions["start"] = functions["start"] or startMapSearch
   functions["next"] = functions["next"] or nextMapSearch
   functions["get_raw_neighbors"] = functions["get_raw_neighbors"] or getRawNeighbors
   functions["should_add_to_search_1"] = functions["should_add_to_search_1"] or shouldAddToSearch
 
-  local payload = {}
-  payload["paths"] = PriorityQueue()
-  payload["map"] = self.map
-  payload["stop_search"] = false
-  payload["top"] = nil
-  payload["origin"] = origin
-  payload["visited"] = {}
-  payload["self"] = self
+  self.origin = origin
+  self.top = nil
+  self.paths = PriorityQueue()
+  --self.map = map
+  self.stop_search = false
+  self.visited = {}
+  self.functions = {
+    start=functions["start"],
+    next=functions["next"],
+    get_raw_neighbors=functions["get_raw_neighbors"],
+    should_add_to_search_1=functions["should_add_to_search_1"],
+    should_add_to_search_2=functions["should_add_to_search_2"],
+  }
 
   -- Start the search
-  functions["start"](payload)
+  functions["start"](self)
 
   -- While we should not stop the search
-  while payload["stop_search"] ~= true do
+  while self.stop_search ~= true do
     -- Get the next path
-    functions["next"](payload)
+    functions["next"](self)
 
     -- See if we should stop the search
-    if payload["stop_search"] then
+    if self.stop_search then
       break
     end
 
     -- Get the raw neighbors
-    local topPath = payload["top"]
+    local topPath = self.top
     local step = topPath[ #topPath ]
-    local rawNeighbors = functions["get_raw_neighbors"](payload, step)
+    local rawNeighbors = functions["get_raw_neighbors"](self, step)
 
     -- Filter the neighbors
 
     -- Get the origin
-    local origin = payload["origin"]
+    local origin = self.origin
 
     -- Get the adjacent coordinates to the top
     local neighbors = {}
@@ -180,11 +207,11 @@ function MapSearch:searchMap(functions, origin)
       local coordColumn = coord["column"]
       local coordRow = coord["row"]
 
-      local firstFilterPass = functions["should_add_to_search_1"](payload, coord)
+      local firstFilterPass = functions["should_add_to_search_1"](self, coord)
 
       if firstFilterPass then
         -- Run the custom second pass
-        local secondFilterPass = functions["should_add_to_search_2"](payload, coord)
+        local secondFilterPass = functions["should_add_to_search_2"](self, coord)
 
         if secondFilterPass then
           -- Add the coordinate to the neighbors
@@ -197,23 +224,22 @@ function MapSearch:searchMap(functions, origin)
       end
     end
     -- Using the new neighbors, generate new paths
-    self = payload["self"]
-    self:addNewPathsWithNeighbors(payload, neighbors)
+    self:addNewPathsWithNeighbors(neighbors)
 
     -- See if we should stop the search
-    functions["should_stop"](payload)
+    functions["should_stop"](self)
   end
 
   -- Return the paths
-  return payload
+  return self.visited
 end
 
-function MapSearch:isAlreadyVisited(payload, coordinate)
+function MapSearch:isAlreadyVisited(coordinate)
   -- Returns true if the coordinate has already been visited
   local coordColumn = coordinate["column"]
   local coordRow = coordinate["row"]
 
-  local alreadyVisited = (payload["visited"][coordColumn] ~= nil and payload["visited"][coordColumn][coordRow] ~= nil)
+  local alreadyVisited = (self.visited[coordColumn] ~= nil and self.visited[coordColumn][coordRow] ~= nil)
 
   return (alreadyVisited == true)
 end
@@ -251,11 +277,11 @@ function MapSearch:getNeighboringCoordinates(centralCoordinate)
   return neighbors
 end
 
-function MapSearch:addNewPathsWithNeighbors(payload, neighbors)
+function MapSearch:addNewPathsWithNeighbors(neighbors)
   -- Make new paths for the given neighbors.
   -- Neighbors are a table containing the column, row and movment cost to the neighbor.
 
-  local topPath = payload["top"]
+  local topPath = self.top
   local step = topPath[ #topPath ]
 
   for i, neighbor in ipairs(neighbors) do
@@ -278,16 +304,16 @@ function MapSearch:addNewPathsWithNeighbors(payload, neighbors)
     )
 
     -- Add this to the paths
-    payload["paths"]:put(newPath, newCost)
+    self.paths:put(newPath, newCost)
   end
 end
 
-function MapSearch:getAllVisitedLocationsFromPayload(payload)
+function MapSearch:getAllVisitedLocations()
   -- Return a table containing one table for each visited entry.
   visited = {}
 
   -- Iterate from each column
-  for column, column_table in pairs(payload["visited"]) do
+  for column, column_table in pairs(self.visited) do
     -- Iterate from each row
     for row, row_found in pairs(column_table) do
       -- If it's not nil, add it to the visited locations
