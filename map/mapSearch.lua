@@ -103,40 +103,32 @@ function MapSearch:new(map)
     start=nil,
     next=nil,
     get_raw_neighbors=nil,
-    should_add_to_search_1=nil,
-    should_add_to_search_2=nil,
+    basic_should_add_to_search=nil,
+    should_add_to_search=nil,
   }
   self.search_errors = nil
 
   return self
 end
 
---[[ Search functions
-functions: A table that lets you customize the search.
-  start - Has a default (see startMapSearch). Initializes search parameters.
-  next - Has a default (see nextMapSearch). Gets the next path to observe and
-    marks a location as visited.
-  get_raw_neighbors - Has a default (see getRawNeighbors). Based on the top path
-    returned by next(), return a list of neighbors, not filtered.
-  should_add_to_search_1 - Has a default (see TODO). Returns a boolean to
-    determine if this coordinate should be added to the search. Default has
-    basic filtering options.
-  should_add_to_search_2 - Returns a boolean to determine if this coordinate
-    should be added to the search.
-  (DEPRECATED) add_neighbors - This function will add neighbors to the search.
-  should_stop - Sets payload["stop_search"] to true if the search should end.
+--[[
+  Starting from the origin, this performs an A* search.
 
-origin: A table with the column and row where you want to begin the search.
+  functions is a table and must contain this key:
+    - should_add_to_search: function(self, coord) returns true if the coord
+      should be added to the list of paths to search.
 
-payload is a table containing:
-  origin - A table with the "column" and "row" indecies
-  top - The current observed path
-  paths - A priority queue containing all of the paths to points on the map,
-    sorted by movement cost.
-  map - This MapClass object
-  stop_search - A boolean value indicating if the search should stop now.
-  visited - A dict marking the columns and rows than have been visited.
---]]
+    Optional keys for the function table let you customize behavior:
+    - start: Starts the search.
+    - next: Gets the next path and marks it visited.
+    - get_raw_neighbors: When looking at a path, call this function to retutn a list
+    - basic_should_add_to_search: Default behavior returns true if the coord is
+      on the map and hasn't been visited.
+
+  Returns: None.
+  Side Effects include:
+    self.visited will contain all of the locations visited.
+]]
 function MapSearch:searchMap(functions, origin)
   -- origin must contain a row and column
   if origin == nil or
@@ -153,15 +145,15 @@ function MapSearch:searchMap(functions, origin)
     self.search_errors = "function parameter should be a table"
     return nil
   end
-  if functions["should_add_to_search_2"] == nil then
-    self.search_errors = "function table is missing should_add_to_search_2"
+  if functions["should_add_to_search"] == nil then
+    self.search_errors = "function table is missing should_add_to_search"
     return nil
   end
 
   functions["start"] = functions["start"] or startMapSearch
   functions["next"] = functions["next"] or nextMapSearch
   functions["get_raw_neighbors"] = functions["get_raw_neighbors"] or getRawNeighbors
-  functions["should_add_to_search_1"] = functions["should_add_to_search_1"] or shouldAddToSearch
+  functions["basic_should_add_to_search"] = functions["basic_should_add_to_search"] or shouldAddToSearch
 
   self.origin = origin
   self.top = nil
@@ -173,8 +165,8 @@ function MapSearch:searchMap(functions, origin)
     start=functions["start"],
     next=functions["next"],
     get_raw_neighbors=functions["get_raw_neighbors"],
-    should_add_to_search_1=functions["should_add_to_search_1"],
-    should_add_to_search_2=functions["should_add_to_search_2"],
+    basic_should_add_to_search=functions["basic_should_add_to_search"],
+    should_add_to_search=functions["should_add_to_search"],
   }
 
   -- Start the search
@@ -207,11 +199,11 @@ function MapSearch:searchMap(functions, origin)
       local coordColumn = coord["column"]
       local coordRow = coord["row"]
 
-      local firstFilterPass = functions["should_add_to_search_1"](self, coord)
+      local firstFilterPass = functions["basic_should_add_to_search"](self, coord)
 
       if firstFilterPass then
         -- Run the custom second pass
-        local secondFilterPass = functions["should_add_to_search_2"](self, coord)
+        local secondFilterPass = functions["should_add_to_search"](self, coord)
 
         if secondFilterPass then
           -- Add the coordinate to the neighbors

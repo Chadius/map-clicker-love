@@ -67,7 +67,7 @@ function skip_test_bad_params()
 
   -- Pass in the function table, but without needed functions
   testSearch:searchMap({}, origin)
-  assert_equal(testSearch.search_errors, "function table is missing should_add_to_search_2")
+  assert_equal(testSearch.search_errors, "function table is missing should_add_to_search")
 end
 
 function test_no_movement()
@@ -77,7 +77,7 @@ function test_no_movement()
 
   local functions = {
     get_raw_neighbors=dont_get_raw_neighbors,
-    should_add_to_search_2=add_neighbors_null,
+    should_add_to_search=add_neighbors_null,
     should_stop=stop_when_empty
   }
 
@@ -128,7 +128,7 @@ function test_check_for_neighbors()
   -- Results should have 3 items.
 
   local functions = {
-    should_add_to_search_2=add_neighbors_adjacent_to_origin,
+    should_add_to_search=add_neighbors_adjacent_to_origin,
     should_stop=stop_when_empty
   }
 
