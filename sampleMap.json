@@ -3,8 +3,8 @@
     "movement tile to image index":{
       "s": "sky",
       "x": "wall",
-      " ": "ground",
-      "^": "rough",
+      " ": "concrete",
+      "^": "grass"
     },
     "movement":[
 "sssss",
@@ -16,7 +16,7 @@
         "filename" : "basicTerrain.png",
         "quad size" : 64,
         "terrain quads" : {
-            "ground" : {
+            "concrete" : {
                 "x" : 0,
                 "y" : 0
             },
@@ -28,7 +28,7 @@
                 "x" : 1,
                 "y" : 0
             },
-            "rough" : {
+            "grass" : {
                 "x" : 1,
                 "y" : 1
             }

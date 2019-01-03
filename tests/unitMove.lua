@@ -43,7 +43,6 @@ MoveType class
 TODO
 
 TODO: Add MoveType to MapUnits
-TODO: Rename map terrain names
 
 Unit Tests!
 5x5 map
