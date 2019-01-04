@@ -1,4 +1,5 @@
 require "map/mapClass"
+require "tests/utility/map"
 local PriorityQueue = require "map/priorityQueue"
 local lunit = require "libraries/unitTesting/lunitx"
 
@@ -47,7 +48,7 @@ end
 
 function skip_test_bad_params()
   -- Make sure an origin and functions are passed.
-  functions = {
+  local functions = {
     add_neighbors=add_neighbors_null,
     should_stop=stop_when_empty
   }
@@ -57,7 +58,7 @@ function skip_test_bad_params()
   assert_equal(testSearch.search_errors, "origin needs column and row")
   assert_equal(search_results, nil)
 
-  origin = {
+  local origin = {
     column=1,
     row=1
   }
@@ -88,12 +89,6 @@ function test_no_movement()
 
   testSearch:searchMap(functions, origin)
 
-  -- Only 1 column was visited, at the origin, column 2
-  assert_not_equal(nil, testSearch.visited[2])
-
-  -- Only 1 row in that column was visited, row 3
-  assert_not_equal(nil, testSearch.visited[2][3])
-
   -- The search was stopped
   assert_true(testSearch.stop_search)
 
@@ -101,11 +96,16 @@ function test_no_movement()
   assert_equal(2, testSearch.origin["column"])
   assert_equal(3, testSearch.origin["row"])
 
+  -- Only 1 column was visited, at the origin
+  local expected_locations = {
+    {column=2,row=3},
+  }
+
+  assert_map_locations_table_found(expected_locations, testSearch.visited, "test_no_movement")
+
   -- There is only 1 visited point, at (2,3)
-  all_visited = testSearch:getAllVisitedLocations()
-  assert_equal(1, #all_visited)
-  assert_equal(2, all_visited[1]["column"])
-  assert_equal(3, all_visited[1]["row"])
+  local all_visited = testSearch:getAllVisitedLocations()
+  assert_map_locations_list_found(expected_locations, all_visited, "test_no_movement")
 end
 
 function add_neighbors_adjacent_to_origin(mapSearch, coord)
@@ -139,52 +139,18 @@ function test_check_for_neighbors()
 
   testSearch:searchMap(functions, origin)
 
-  -- There are 4 visited locations
-  local visited_locations = testSearch.visited
-
-  -- (1,1)
-  assert_not_equal(nil, visited_locations[1])
-  assert_not_equal(nil, visited_locations[1][1])
-
-  --(2,1)
-  assert_not_equal(nil, visited_locations[2])
-  assert_not_equal(nil, visited_locations[2][1])
-
-  --(1,2)
-  assert_not_equal(nil, visited_locations[1])
-  assert_not_equal(nil, visited_locations[1][2])
-
-  --(2,2)
-  assert_not_equal(nil, visited_locations[1])
-  assert_not_equal(nil, visited_locations[1][2])
-
-  -- Should have visited 4 locations
-
-  all_visited = testSearch:getAllVisitedLocations()
-  assert_equal(4, #all_visited)
-
-  -- Make sure the visited locations have the expected ones
-  expected_visited = {
+  -- Assert all locations were found.
+  local expected_locations = {
     {column=1,row=1},
     {column=1,row=2},
     {column=2,row=1},
     {column=2,row=2}
   }
 
-  -- For each expected location
-  for i, expected in ipairs(expected_visited) do
-    -- Look through the actual visited locations to see if they match.
-    for j, actual in ipairs(all_visited) do
-      if actual["column"] == expected["column"] and actual["row"] == expected["row"] then
-        -- Found this location. Mark it as true and look at the next expected one.
-        expected["found"] = true
-        break
-      end
-    end
-  end
+  local visited_locations = testSearch.visited
+  assert_map_locations_table_found(expected_locations, testSearch.visited, "test_no_movement")
 
-  -- Assert all of them were found.
-  for i, expected in ipairs(expected_visited) do
-    assert_true(expected["found"], "(" .. expected["column"] .. "," .. expected["row"] ..") not found")
-  end
+  -- Assert all locations were found.
+  local all_visited = testSearch:getAllVisitedLocations()
+  assert_map_locations_list_found(expected_locations, all_visited, "test_no_movement")
 end
