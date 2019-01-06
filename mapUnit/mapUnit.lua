@@ -6,6 +6,7 @@ function MapUnit:new()
   self.drawing=nil
   self.column=nil
   self.row=nil
+  self.movement=nil
   return self
 end
 function MapUnit:load()

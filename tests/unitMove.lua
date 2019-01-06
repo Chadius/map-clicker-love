@@ -1,4 +1,6 @@
 require "map/mapClass"
+require "mapUnit/mapUnit"
+require "mapUnit/unitMove"
 require "tests/utility/map"
 local lunit = require "libraries/unitTesting/lunitx"
 
@@ -80,28 +82,29 @@ ChartCourse to (1,1), returns nil because you lack movement.
 NextWaypoint returns nil because you passed it nil.
 ]]
 
-local test_map = nil
-local test_unit = nil
+local testMap = nil
+local testUnit = nil
 
 function setup()
   -- Test Map is a 3x3 grid
   testMap = MapClass:new{}
   testMap.mapTile = {
     {1,1,1,1,1},
+     {1,1,1,1,1},
     {1,1,1,1,1},
-    {1,1,1,1,1},
-    {1,1,1,1,1},
+     {1,1,1,1,1},
     {1,1,1,1,1},
   }
   testMap.moveTile = {
     {1,2,1,1,1},
-    {3,1,1,1,1},
+     {3,1,4,1,1},
     {1,1,1,1,1},
-    {1,1,4,1,5},
+     {1,1,4,1,5},
     {1,1,4,1,1},
   }
 
-  -- TODO Test Unit
+  -- Test Unit
+  testUnit = MapUnit:new()
 end
 
 function teardown()
@@ -116,6 +119,12 @@ function assert_map_locations_table_found(expected_locations, actual_map, assert
   --- The inner table uses rows as keys.
   -- expected_locations is a list of tables with column and row keys.
   -- assert_prepend is a string to add to the assert if it fails.
+
+  if expected_locations ~= nil then
+    assert_not_equal(nil, actual_map)
+  else
+    assert_equal(nil, actual_map)
+  end
 
   for index, location in pairs(expected_locations) do
     local column = location["column"]
@@ -165,7 +174,7 @@ function test_unit_has_no_move()
   -- Unit cannot move.
   testUnit.movement=UnitMove:new(
     testMap,
-    {column=3,row=2},
+    {column=2,row=3},
     0,
     "foot"
   )
@@ -173,7 +182,7 @@ function test_unit_has_no_move()
   -- Unit can only access its spawn point.
   local nearby_tiles = testUnit.movement.GetTilesWithinMovement()
   local expected_locations = {
-    {column=3,row=2},
+    {column=2,row=3},
   }
   assert_map_locations_table_found(expected_locations, nearby_tiles, "test_unit_has_no_move")
 
@@ -181,19 +190,90 @@ function test_unit_has_no_move()
   assert_map_locations_list_found(expected_locations, list_of_tiles, "test_unit_has_no_move")
 
   -- Unit can't chart courses because it can't move there.
+  local course = testUnit.movement.ChartCourse({column=2,row=2})
+  assert_equal(nil, course)
+
   -- Unit cannot get a waypoint because you cannot move.
+  local next_waypoint = NextWaypoint(course)
+  assert_equal(nil, next_waypoint)
+
+  -- You can chart a course to the starting point.
+  course = testUnit.movement.ChartCourse({column=2,row=3})
+  assert_not_equal(nil, course)
+
+  -- You are at the course destination so there are no waypoints.
+  next_waypoint = NextWaypoint(course)
+  assert_equal(nil, next_waypoint)
 end
 
 function test_unit_with_1_move_fly()
   -- Unit has 1 movement while flying
+  testUnit.movement=UnitMove:new(
+    testMap,
+    {column=2,row=2},
+    1,
+    "fly"
+  )
+
   -- Unit can access adjacent spaces next turn (except the wall)
+  local nearby_tiles = testUnit.movement.GetTilesWithinMovement()
+  local expected_locations = {
+    {column=2,row=1},
+    {column=3,row=1},
+    {column=1,row=2},
+    {column=2,row=2},
+    {column=2,row=3},
+    {column=3,row=3},
+  }
+  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_unit_with_1_move_fly")
+
+  local list_of_tiles = testUnit.movement.GetTilesWithinMovement{flatten=true}
+  assert_map_locations_list_found(expected_locations, list_of_tiles, "test_unit_with_1_move_fly")
+
   -- Unit can chart courses to anywhere except walls.
+  local course = testUnit.movement.ChartCourse({column=1,row=1})
+  assert_not_equal(nil, course)
+
+  -- Can't chart a course to the wall, no matter how many turns
+  course = testUnit.movement.ChartCourse({column=3,row=2})
+  assert_equal(nil, course)
+
   -- Chart a course that will take 2 turns to reach. NextWaypoint returns an adjacent tile.
+  course = testUnit.movement.ChartCourse({column=4,row=1})
+  assert_not_equal(nil, course)
+
+  local next_waypoint = NextWaypoint(course)
+  assert_equal(3, next_waypoint["column"])
+  assert_equal(1, next_waypoint["row"])
 end
 
 function test_unit_with_1_move_foot()
   -- Unit has 1 movement on foot
-  -- Unit can access adjacent spaces next turn.
+  testUnit.movement=UnitMove:new(
+    testMap,
+    {column=2,row=2},
+    1,
+    "foot"
+  )
+
+  -- [[ Unit can access adjacent spaces next turn.
+  --  Because it cost too much movement, this unit cannot move to the grass and
+  --    mud tiles. They should not appear.
+  -- ]]
+  local nearby_tiles = testUnit.movement.GetTilesWithinMovement()
+  local expected_locations = {
+    {column=3,row=1},
+    {column=2,row=2},
+    {column=2,row=3},
+    {column=3,row=3},
+  }
+  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_unit_with_1_move_foot")
+
   -- Unit can chart courses to concrete terrain.
+  local course = testUnit.movement.ChartCourse({column=1,row=3})
+  assert_not_equal(nil, course)
+
   -- Chart course to a location that takes 2 movement to cross, expect nil.
+  local course = testUnit.movement.ChartCourse({column=1,row=1})
+  assert_equal(nil, course)
 end
