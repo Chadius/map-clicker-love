@@ -87,7 +87,12 @@ function MapClass:isOnMap(coordinate)
   return true
 end
 
-function MapClass:getAllVisitedLocationsFromPayload(payload)
-  -- Return a table containing one table for each visited entry.
-  return self.search:getAllVisitedLocationsFromPayload(payload)
+function MapClass:getTileTerrain(coordinate)
+  -- Return the type of terrain at a tile.
+  if self:isOnMap(coordinate) == false then
+    return nil
+  end
+  local column = coordinate["column"]
+  local row = coordinate["row"]
+  return self.mapTile[column][row]
 end

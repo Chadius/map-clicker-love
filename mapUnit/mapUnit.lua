@@ -1,3 +1,5 @@
+require "mapUnit/unitMove"
+
 --[[ State required to track a Unit on a Map.
 --]]
 
@@ -34,4 +36,18 @@ function MapUnit:finishedMoving()
 end
 function MapUnit:draw()
   self.drawing:draw()
+end
+
+function MapUnit:chartCourse(destination)
+  return self.movement:chartCourse(destination)
+end
+function MapUnit:nextWaypoint(course)
+  return self.movement:nextWaypoint(course)
+end
+function MapUnit:getTilesWithinMovement(args)
+  local unitLocation = {
+    column=self.column,
+    row=self.row
+  }
+  return self.movement:getTilesWithinMovement(unitLocation, args)
 end

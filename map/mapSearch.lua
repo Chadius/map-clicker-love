@@ -71,7 +71,7 @@ local function getRawNeighbors(self, centralCoordinate)
   return neighbors
 end
 
-local function shouldAddToSearch(self, coord)
+local function shouldAddToSearch(self, coord, cost)
   -- Returns true if this coord should be added to the search.
 
   local map = self.map
@@ -89,6 +89,13 @@ local function shouldAddToSearch(self, coord)
   end
 
   return false
+end
+
+local function stop_when_empty(self)
+  -- Stop searching as soon as the available paths are empty
+  if self.paths:empty() == 0 then
+    self.stop_search = true
+  end
 end
 
 MapSearch={}
@@ -124,12 +131,13 @@ end
     - get_raw_neighbors: When looking at a path, call this function to retutn a list
     - basic_should_add_to_search: Default behavior returns true if the coord is
       on the map and hasn't been visited.
+    - should_stop: Return true if you should stop searching after a given iteration.
 
   Returns: None.
   Side Effects include:
     self.visited will contain all of the locations visited.
 ]]
-function MapSearch:searchMap(functions, origin)
+function MapSearch:searchMap(functions, origin, context)
   -- origin must contain a row and column
   if origin == nil or
     type(origin) ~= "table" or
@@ -154,6 +162,7 @@ function MapSearch:searchMap(functions, origin)
   functions["next"] = functions["next"] or nextMapSearch
   functions["get_raw_neighbors"] = functions["get_raw_neighbors"] or getRawNeighbors
   functions["basic_should_add_to_search"] = functions["basic_should_add_to_search"] or shouldAddToSearch
+  functions["should_stop"] = functions["should_stop"] or stop_when_empty
 
   self.origin = origin
   self.top = nil
@@ -198,19 +207,20 @@ function MapSearch:searchMap(functions, origin)
     for i, coord in ipairs(rawNeighbors) do
       local coordColumn = coord["column"]
       local coordRow = coord["row"]
+      local cost = step["cost"]
 
-      local firstFilterPass = functions["basic_should_add_to_search"](self, coord)
+      local firstFilterPass = functions["basic_should_add_to_search"](self, coord, cost, context)
 
       if firstFilterPass then
         -- Run the custom second pass
-        local secondFilterPass = functions["should_add_to_search"](self, coord)
+        local secondFilterPass = functions["should_add_to_search"](self, coord, cost, context)
 
         if secondFilterPass then
           -- Add the coordinate to the neighbors
           table.insert(neighbors, {
             column=coordColumn,
             row=coordRow,
-            cost=1
+            cost=1 -- TODO have to extract cost to the next tile
           })
         end
       end
@@ -302,7 +312,7 @@ end
 
 function MapSearch:getAllVisitedLocations()
   -- Return a table containing one table for each visited entry.
-  visited = {}
+  local visited = {}
 
   -- Iterate from each column
   for column, column_table in pairs(self.visited) do
