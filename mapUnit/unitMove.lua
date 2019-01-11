@@ -111,7 +111,7 @@ function UnitMove:chartCourse(mapUnit, destination)
 
   search:searchMap(
     functions,
-    {column=mapUnit.column,row=mapUnit.row},
+    mapUnit:getMapCoordinates(),
     destination,
     {
       mapUnit=mapUnit,
@@ -168,7 +168,7 @@ function UnitMove:getTilesWithinMovement(mapUnit, args)
 
   search:searchMap(
     functions,
-    {column=mapUnit.column,row=mapUnit.row},
+    mapUnit:getMapCoordinates(),
     nil,
     {
       mapUnit=mapUnit,

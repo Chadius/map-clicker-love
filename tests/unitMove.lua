@@ -172,8 +172,8 @@ end
 
 function test_unit_has_no_move()
   -- Unit cannot move.
-  testUnit.column=2
-  testUnit.row=3
+  testUnit.mapCoordinates.column=2
+  testUnit.mapCoordinates.row=3
 
   testUnit.movement=UnitMove:new(
     testMap,
@@ -210,8 +210,8 @@ end
 
 function atest_unit_with_1_move_fly()
   -- Unit has 1 movement while flying
-  testUnit.column=2
-  testUnit.row=2
+  testUnit.mapCoordinates.column=2
+  testUnit.mapCoordinates.row=2
 
   testUnit.movement=UnitMove:new(
     testMap,
@@ -253,8 +253,8 @@ end
 
 function atest_unit_with_1_move_foot()
   -- Unit has 1 movement on foot
-  testUnit.column=2
-  testUnit.row=2
+  testUnit.mapCoordinates.column=2
+  testUnit.mapCoordinates.row=2
 
   testUnit.movement=UnitMove:new(
     testMap,

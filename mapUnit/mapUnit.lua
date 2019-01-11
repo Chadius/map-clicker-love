@@ -6,8 +6,7 @@ require "mapUnit/unitMove"
 MapUnit={}
 function MapUnit:new()
   self.drawing=nil
-  self.column=nil
-  self.row=nil
+  self.mapCoordinates={column=nil,row=nil}
   self.movement=nil
   return self
 end
@@ -18,8 +17,7 @@ function MapUnit:update(dt)
 end
 function MapUnit:moveToTile(column, row)
   -- Indicate the unit should move to the given location on the map.
-  self.column = column
-  self.row = row
+  self.mapCoordinates={column=column,row=row}
 
   -- Tell the graphics you want to animate the tile moving over to the destination.
   self.drawing:moveToTile(
@@ -48,5 +46,5 @@ function MapUnit:getTilesWithinMovement(args)
   return self.movement:getTilesWithinMovement(self, args)
 end
 function MapUnit:getMapCoordinates()
-  return {column=self.column, row=self.row}
+  return {column=self.mapCoordinates.column, row=self.mapCoordinates.row}
 end
