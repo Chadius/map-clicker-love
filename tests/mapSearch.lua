@@ -71,7 +71,7 @@ function skip_test_bad_params()
   assert_equal(testSearch.search_errors, "function table is missing should_add_to_search")
 end
 
-function test_no_movement()
+function atest_no_movement()
   -- Start searching in the middle of the map.
   -- Stop after 1 iteration.
   -- Results should have 1 item, the start point.

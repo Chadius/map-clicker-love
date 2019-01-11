@@ -39,7 +39,7 @@ function MapUnit:draw()
 end
 
 function MapUnit:chartCourse(destination)
-  return self.movement:chartCourse(destination)
+  return self.movement:chartCourse(self, destination)
 end
 function MapUnit:nextWaypoint(course)
   return self.movement:nextWaypoint(course)
