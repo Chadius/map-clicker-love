@@ -134,17 +134,30 @@ function UnitMove:chartCourse(mapUnit, destination)
   -- The path is not possible.
   return nil
 end
-function UnitMove:nextWaypoint(course)
+function UnitMove:nextWaypoint(mapUnit, course)
   --[[ Following the course, return the next location within move distance.
   Returns nil if:
   - Unit is not on the path
   - Unit has completed the path and is on the end.
   - Unit does not have enough move to actually move.
   --]]
+
+  if course == nil then
+    return nil
+  end
+
+  -- Get the destination
+  local destination = course[#course]
+  -- If the unit is already at the destination, return nil
+  local current_location = mapUnit:getMapCoordinates()
+  if destination.column == current_location.column and destination.row == current_location.row then
+    return nil
+  end
+
   return nil
 end
 
-function UnitMove:getTilesWithinMovement(unitLocation, args)
+function UnitMove:getTilesWithinMovement(mapUnit, args)
   -- Returns a MapSearch object showing all of the tiles within movement range.
 
   -- Start a new MapSearch.
@@ -155,8 +168,12 @@ function UnitMove:getTilesWithinMovement(unitLocation, args)
 
   search:searchMap(
     functions,
-    unitLocation,
-    self
+    {column=mapUnit.column,row=mapUnit.row},
+    nil,
+    {
+      mapUnit=mapUnit,
+      unitMove=self
+    }
   )
 
   -- If the flatten argument was supplied, flatten the results before returning.

@@ -42,12 +42,11 @@ function MapUnit:chartCourse(destination)
   return self.movement:chartCourse(self, destination)
 end
 function MapUnit:nextWaypoint(course)
-  return self.movement:nextWaypoint(course)
+  return self.movement:nextWaypoint(self, course)
 end
 function MapUnit:getTilesWithinMovement(args)
-  local unitLocation = {
-    column=self.column,
-    row=self.row
-  }
-  return self.movement:getTilesWithinMovement(unitLocation, args)
+  return self.movement:getTilesWithinMovement(self, args)
+end
+function MapUnit:getMapCoordinates()
+  return {column=self.column, row=self.row}
 end

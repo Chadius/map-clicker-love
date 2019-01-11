@@ -182,7 +182,6 @@ function test_unit_has_no_move()
   )
 
   -- Unit can only access its spawn point.
-  --[[
   local nearby_tiles = testUnit:getTilesWithinMovement()
   local expected_locations = {
     {column=2,row=3},
@@ -199,7 +198,7 @@ function test_unit_has_no_move()
   -- Unit cannot get a waypoint because you cannot move.
   local next_waypoint = testUnit:nextWaypoint(course)
   assert_equal(nil, next_waypoint)
---]]
+
   -- You can chart a course to the starting point.
   local course = testUnit:chartCourse({column=2,row=3})
   assert_not_equal(nil, course)
@@ -207,7 +206,6 @@ function test_unit_has_no_move()
   -- You are at the course destination so there are no waypoints.
   next_waypoint = testUnit:nextWaypoint(course)
   assert_equal(nil, next_waypoint)
-  -- ]]
 end
 
 function atest_unit_with_1_move_fly()
