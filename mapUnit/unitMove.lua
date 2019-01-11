@@ -5,6 +5,44 @@
 --- Movement distance
 --- Movement cost
 -- ]]
+local function get_move_cost_by_terrain(unitMove, terrainType)
+  -- Returns a number representing the movement cost to cross.
+  -- Returns nil if it can't be crossed.
+
+  -- TODO terrainType may be something more sophisticated some day.
+  -- [[ TODO We're hard coding the terrain types for now.
+  -- 1 = Concrete
+  -- 2 = Grass
+  -- 3 = Mud
+  -- 4 = Wall
+  -- 5 = Pit
+  -- ]]
+
+  -- Walls cannot be crossed.
+  if terrainType == 4 then
+    return nil
+  end
+
+  -- If the unit can fly the cost is 1.
+  if unitMove.moveType == "fly" then
+    return 1
+  end
+
+  -- On foot units cannot cross pits.
+  if terrainType == 5 then
+    return nil
+  end
+
+  -- Return the move cost.
+  if terrainType == 2 then
+    return 2
+  end
+  if terrainType == 3 then
+    return 3
+  end
+  return 1
+end
+
 local function should_add_to_search_if_within_unit_movement(mapSearch, next_step, destination, context)
   -- Return true if the point would not exceed the cost.
 
@@ -31,7 +69,7 @@ local function should_add_to_search_if_within_unit_movement(mapSearch, next_step
   end
 
   -- Get the movement cost of this tile
-  local moveCost = 1 -- TODO
+  local moveCost = get_move_cost_by_terrain(self, terrainType)
 
   -- If the cost exceeds the moveDistance, return false
   if current_cost + moveCost > self.moveDistance then
@@ -46,9 +84,6 @@ local function should_add_to_search_if_can_be_crossed(mapSearch, next_step, dest
   -- Return true if the unit could cross the tile, given its movement type.
 
   local self = context.unitMove
-
-  local coordColumn = next_step["column"]
-  local coordRow = next_step["row"]
 
   -- If this neighbor is in a wall, return false
   local terrainType = self.map:getTileTerrain(next_step)
@@ -72,7 +107,7 @@ local function should_add_to_search_if_can_be_crossed(mapSearch, next_step, dest
   end
 
   -- Get the movement cost of this tile
-  local moveCost = 1 -- TODO
+  local moveCost = get_move_cost_by_terrain(self, terrainType)
 
   -- If move cost exceeds the unit's move cost, return false.
   if moveCost > self.moveDistance then
@@ -106,7 +141,7 @@ function UnitMove:chartCourse(mapUnit, destination)
 
   -- Begin a search. Track all of the visited locations the unit can reach with its movement.
   local functions = {
-    should_add_to_search=should_add_to_search_if_within_unit_movement
+    should_add_to_search=should_add_to_search_if_can_be_crossed
   }
 
   search:searchMap(

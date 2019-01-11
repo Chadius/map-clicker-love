@@ -222,7 +222,6 @@ function MapSearch:searchMap(functions, origin, destination, context)
       if firstFilterPass then
         -- Run the custom second pass
         local secondFilterPass = functions["should_add_to_search"](self, next_step, destination, context)
-
         if secondFilterPass then
           -- Add the coordinate to the neighbors
           table.insert(neighbors, {

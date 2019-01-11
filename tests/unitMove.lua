@@ -150,7 +150,7 @@ function assert_map_locations_list_found(expected_locations, actual_map, assert_
   -- Assumes actual and expected are a list of tables with column and row keys.
 
   -- Should have visited the expected number of locations
-  assert_equal(#expected_locations, #actual_map)
+  assert_equal(#expected_locations, #actual_map, assert_prepend .. ": " .. "expected " .. #expected_locations .. ", but found " .. #actual_map)
 
   -- For each expected location
   for i, expected in ipairs(expected_locations) do
@@ -170,7 +170,7 @@ function assert_map_locations_list_found(expected_locations, actual_map, assert_
   end
 end
 
-function test_unit_has_no_move()
+function atest_unit_has_no_move()
   -- Unit cannot move.
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=3
@@ -208,7 +208,7 @@ function test_unit_has_no_move()
   assert_equal(nil, next_waypoint)
 end
 
-function atest_unit_with_1_move_fly()
+function test_unit_with_1_move_fly()
   -- Unit has 1 movement while flying
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=2
@@ -229,10 +229,10 @@ function atest_unit_with_1_move_fly()
     {column=2,row=3},
     {column=3,row=3},
   }
-  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_unit_with_1_move_fly")
+  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_unit_with_1_move_fly 232")
 
   local list_of_tiles = testUnit:getTilesWithinMovement{flatten=true}
-  assert_map_locations_list_found(expected_locations, list_of_tiles, "test_unit_with_1_move_fly")
+  assert_map_locations_list_found(expected_locations, list_of_tiles, "test_unit_with_1_move_fly 235")
 
   -- Unit can chart courses to anywhere except walls.
   local course = testUnit:chartCourse({column=1,row=1})
@@ -240,6 +240,10 @@ function atest_unit_with_1_move_fly()
 
   -- Can't chart a course to the wall, no matter how many turns
   course = testUnit:chartCourse({column=3,row=2})
+  assert_equal(nil, course)
+
+  -- Can't chart a course to the pit because you can't stop there
+  course = testUnit:chartCourse({column=5,row=4})
   assert_equal(nil, course)
 
   -- Chart a course that will take 2 turns to reach. NextWaypoint returns an adjacent tile.

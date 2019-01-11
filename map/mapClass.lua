@@ -10,6 +10,9 @@ end
 MapClass={}
 function MapClass:new()
   self.mapTile={}
+
+  -- Store the terrain costs. This should have the same dimensions as mapTile.
+  self.moveTile={}
   self.drawing=nil
   self.search=MapSearch:new(self)
   return self
@@ -94,5 +97,5 @@ function MapClass:getTileTerrain(coordinate)
   end
   local column = coordinate["column"]
   local row = coordinate["row"]
-  return self.mapTile[column][row]
+  return self.moveTile[row][column]
 end
