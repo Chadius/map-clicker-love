@@ -170,7 +170,7 @@ function assert_map_locations_list_found(expected_locations, actual_map, assert_
   end
 end
 
-function atest_unit_has_no_move()
+function test_unit_has_no_move()
   -- Unit cannot move.
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=3
@@ -208,7 +208,7 @@ function atest_unit_has_no_move()
   assert_equal(nil, next_waypoint)
 end
 
-function test_unit_with_1_move_fly()
+function atest_unit_with_1_move_fly()
   -- Unit has 1 movement while flying
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=2
