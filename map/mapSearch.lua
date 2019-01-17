@@ -1,18 +1,14 @@
 local PriorityQueue = require "map/priorityQueue"
+local MapPath = require "map/mapPath"
 
 local function startMapSearch(self, destination, context)
   -- Default map start.
 
   -- Add the start point as a path.
   local start_point = {}
-  local new_point = {}
-  new_point["column"] = self.origin["column"]
-  new_point["row"] = self.origin["row"]
-  new_point["cost"] = 0
-
-  table.insert(start_point, new_point)
-
-  self.paths:put(start_point, new_point["cost"])
+  local new_path = MapPath:new()
+  new_path:addStep(self.origin["column"], self.origin["row"], 0)
+  self.paths:put(new_path, 0)
 end
 
 local function nextMapSearch(self, destination, context)
@@ -25,7 +21,8 @@ local function nextMapSearch(self, destination, context)
   -- Pop the top of the queue. Set the top.
   local topPath = self.paths:pop()
   self.top = topPath
-  local step = topPath[ #topPath ]
+
+  local step = topPath:topStep()
   local column = step["column"]
   local row = step["row"]
 
@@ -200,7 +197,7 @@ function MapSearch:searchMap(functions, origin, destination, context)
 
     -- Get the raw neighbors
     local topPath = self.top
-    local step = topPath[ #topPath ]
+    local step = topPath:topStep()
     local rawNeighbors = functions["get_raw_neighbors"](self, step, destination, context)
 
     -- Filter the neighbors
@@ -291,29 +288,21 @@ function MapSearch:addNewPathsWithNeighbors(neighbors)
   -- Neighbors are a table containing the column, row and movment cost to the neighbor.
 
   local topPath = self.top
-  local step = topPath[ #topPath ]
+  local step = MapPath.topStep(topPath)
 
   for i, neighbor in ipairs(neighbors) do
     -- Clone the top path
-    local newPath = {}
-
-    for i, step in ipairs(topPath) do
-      table.insert(newPath, step)
-    end
+    local newPath = topPath:clone()
 
     -- Add this new neighbor but with the neighbor's cost
-    local newCost = step["cost"] + neighbor["cost"]
-    table.insert(
-      newPath,
-      {
-        column=neighbor["column"],
-        row=neighbor["row"],
-        cost=newCost
-      }
+    newPath:addStep(
+      neighbor["column"],
+      neighbor["row"],
+      neighbor["cost"]
     )
 
     -- Add this to the paths
-    self.paths:put(newPath, newCost)
+    self.paths:put(newPath, newPath:totalCost())
   end
 end
 

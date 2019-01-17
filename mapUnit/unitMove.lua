@@ -159,7 +159,7 @@ function UnitMove:chartCourse(mapUnit, destination)
   end
 
   local topPath = search.top
-  local step = topPath[ #topPath ]
+  local step = topPath:topStep()
 
   -- If the topPath refers to the destination, return it
   if step.column == destination.column and step.row == destination.row then
@@ -182,7 +182,7 @@ function UnitMove:nextWaypoint(mapUnit, course)
   end
 
   -- Get the destination
-  local destination = course[#course]
+  local destination = course:topStep()
   -- If the unit is already at the destination, return nil
   local current_location = mapUnit:getMapCoordinates()
   if destination.column == current_location.column and destination.row == current_location.row then

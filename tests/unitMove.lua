@@ -3,6 +3,7 @@ require "mapUnit/mapUnit"
 require "mapUnit/unitMove"
 require "tests/utility/map"
 local lunit = require "libraries/unitTesting/lunitx"
+require "libraries/table"
 
 if _VERSION >= 'Lua 5.2' then
     _ENV = lunit.module('enhanced','seeall')
@@ -170,7 +171,7 @@ function assert_map_locations_list_found(expected_locations, actual_map, assert_
   end
 end
 
-function test_unit_has_no_move()
+function atest_unit_has_no_move()
   -- Unit cannot move.
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=3
@@ -208,7 +209,7 @@ function test_unit_has_no_move()
   assert_equal(nil, next_waypoint)
 end
 
-function atest_unit_with_1_move_fly()
+function test_unit_with_1_move_fly()
   -- Unit has 1 movement while flying
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=2
@@ -229,6 +230,7 @@ function atest_unit_with_1_move_fly()
     {column=2,row=3},
     {column=3,row=3},
   }
+
   assert_map_locations_table_found(expected_locations, nearby_tiles, "test_unit_with_1_move_fly 232")
 
   local list_of_tiles = testUnit:getTilesWithinMovement{flatten=true}
