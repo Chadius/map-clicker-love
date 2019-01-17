@@ -1,4 +1,4 @@
-require "map/mapSearch"
+local MapSearch = require "map/mapSearch"
 
 local function readFile(file)
   local f = assert(io.open(file, "rb"))

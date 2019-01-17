@@ -100,23 +100,29 @@ local function stop_when_empty(self, destination, context)
 end
 
 MapSearch={}
+MapSearch.__index = MapSearch
 function MapSearch:new(map)
-  self.origin = nil
-  self.top = nil
-  self.paths = PriorityQueue()
-  self.map = map
-  self.stop_search = false
-  self.visited = {}
-  self.functions = {
+  --[[ Create a new path.
+  --]]
+  local newSearch = {}
+  setmetatable(newSearch,MapSearch)
+
+  newSearch.origin = nil
+  newSearch.top = nil
+  newSearch.paths = PriorityQueue()
+  newSearch.map = map
+  newSearch.stop_search = false
+  newSearch.visited = {}
+  newSearch.functions = {
     start=nil,
     next=nil,
     get_raw_neighbors=nil,
     basic_should_add_to_search=nil,
     should_add_to_search=nil,
   }
-  self.search_errors = nil
+  newSearch.search_errors = nil
 
-  return self
+  return newSearch
 end
 
 --[[
@@ -321,3 +327,5 @@ function MapSearch:getAllVisitedLocations()
 
   return visited
 end
+
+return MapSearch
