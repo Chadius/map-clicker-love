@@ -160,6 +160,17 @@ function UnitMove:chartCourse(mapUnit, destination)
       unitMove=self
     }
   )
+
+  -- TODO print all of the paths
+  if destination.column == 4 and destination.row == 1 then
+    while search.paths:empty() == false do
+      local pth = search.paths:pop()
+      pth:printMe()
+    end
+    print("DONE")
+    return nil
+  end
+
   -- If no top path exists, return nil
   if search.top == nil then
     return nil
@@ -196,7 +207,13 @@ function UnitMove:nextWaypoint(mapUnit, course)
     return nil
   end
 
-  return nil
+  -- Ask the course where the location is.
+  local current_step_index = course:findStep(current_location.column, current_location.row)
+  if current_step_index == nil then
+    return nil
+  end
+
+  return course:getStep(current_step_index+1)
 end
 
 function UnitMove:getTilesWithinMovement(mapUnit, args)

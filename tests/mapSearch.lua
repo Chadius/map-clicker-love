@@ -1,6 +1,9 @@
-local MapClass = require "map/mapClass"
 require "tests/utility/map"
+
+local MapClass = require "map/mapClass"
 local PriorityQueue = require "map/priorityQueue"
+local MapPath = require "map/mapPath"
+
 local lunit = require "libraries/unitTesting/lunitx"
 
 if _VERSION >= 'Lua 5.2' then
@@ -153,4 +156,9 @@ function test_check_for_neighbors()
   -- Assert all locations were found.
   local all_visited = testSearch:getAllVisitedLocations()
   assert_map_locations_list_found(expected_locations, all_visited, "test_no_movement")
+end
+
+function test_map_paths()
+  -- [[ Test the MapPath object.
+  -- ]]
 end

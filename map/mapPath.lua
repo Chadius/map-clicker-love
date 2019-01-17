@@ -66,6 +66,39 @@ function MapPath:totalCost()
   -- Otherwise look at the last step.
   return self.steps[numSteps].totalCost
 end
+function MapPath:findStep(column, row)
+  -- [[ Find the step with the given column and row and return the index.
+  -- Return nil if it can't be found.
+  -- ]]
+  for i, step in ipairs(self.steps) do
+    if step.column == column and step.row == row then
+      return i
+    end
+  end
+
+  return nil
+end
+function MapPath:getStep(index)
+  -- [[ Find the step with the given index.
+  -- Return nil if the index is out of bounds.
+  -- ]]
+  if index < 1 then
+    return nil
+  end
+
+  if index > #self.steps then
+    return nil
+  end
+
+  local selected_step = self.steps[index]
+
+  return {
+    column=selected_step.column,
+    row=selected_step.row,
+    individual_cost=selected_step.cost,
+    cumulative_cost=selected_step.total
+  }
+end
 function MapPath:printMe()
   --[[ Print a string representation.
   --]]
