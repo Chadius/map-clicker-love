@@ -7,16 +7,23 @@ local function readFile(file)
   return content
 end
 
-MapClass={}
+local MapClass={}
+MapClass.__index = MapClass
+
 function MapClass:new()
-  self.mapTile={}
+  --[[ Create a new path.
+  --]]
+  local newMap = {}
+  setmetatable(newMap,MapClass)
+  newMap.mapTile={}
 
   -- Store the terrain costs. This should have the same dimensions as mapTile.
-  self.moveTile={}
-  self.drawing=nil
-  self.search=MapSearch:new(self)
-  return self
+  newMap.moveTile={}
+  newMap.drawing=nil
+  newMap.search=MapSearch:new(newMap)
+  return newMap
 end
+
 function MapClass:load()
   local json = require "reader/json"
   mapFile = readFile("sampleMap.json")
@@ -99,3 +106,5 @@ function MapClass:getTileTerrain(coordinate)
   local row = coordinate["row"]
   return self.moveTile[row][column]
 end
+
+return MapClass

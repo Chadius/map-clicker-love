@@ -6,6 +6,8 @@ local mapObject = nil
 local mapSelector = nil
 local graphicsContext = nil
 
+local MapClass = require 'map/mapClass'
+
 function love.load()
   -- Set the resolution
   love.window.setMode( 640, 480 )
@@ -16,7 +18,6 @@ function love.load()
   require 'audiovisual/graphicsContext'
   graphicsContext = GraphicsContext:new{}
 
-  require 'map/mapClass'
   require 'map/mapDrawing'
   mapObject = MapClass:new{}
   mapObject.drawing = MapDrawing:new(graphicsContext)

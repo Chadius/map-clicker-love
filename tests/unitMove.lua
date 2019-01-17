@@ -1,4 +1,4 @@
-require "map/mapClass"
+local MapClass = require "map/mapClass"
 require "mapUnit/mapUnit"
 require "mapUnit/unitMove"
 require "tests/utility/map"

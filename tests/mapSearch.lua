@@ -1,4 +1,4 @@
-require "map/mapClass"
+local MapClass = require "map/mapClass"
 require "tests/utility/map"
 local PriorityQueue = require "map/priorityQueue"
 local lunit = require "libraries/unitTesting/lunitx"
