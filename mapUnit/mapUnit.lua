@@ -1,14 +1,18 @@
-require "mapUnit/unitMove"
-
 --[[ State required to track a Unit on a Map.
 --]]
 
-MapUnit={}
+local MapUnit={}
+MapUnit.__index = MapUnit
+
 function MapUnit:new()
-  self.drawing=nil
-  self.mapCoordinates={column=nil,row=nil}
-  self.movement=nil
-  return self
+  --[[ Create a new path.
+  --]]
+  local newUnit = {}
+  setmetatable(newUnit,MapUnit)
+  newUnit.drawing=nil
+  newUnit.mapCoordinates={column=nil,row=nil}
+  newUnit.movement=nil
+  return newUnit
 end
 function MapUnit:load()
 end
@@ -48,3 +52,5 @@ end
 function MapUnit:getMapCoordinates()
   return {column=self.mapCoordinates.column, row=self.mapCoordinates.row}
 end
+
+return MapUnit

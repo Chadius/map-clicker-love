@@ -26,7 +26,7 @@ function love.load()
   local MapSelector = require 'map/mapSelector'
   mapSelector = MapSelector:new{}
 
-  require 'mapUnit/mapUnit'
+  local MapUnit = require 'mapUnit/mapUnit'
   local MapUnitDrawing = require 'mapUnit/mapUnitDrawing'
   mapUnit = MapUnit:new()
   mapUnit.drawing = MapUnitDrawing:new(graphicsContext)

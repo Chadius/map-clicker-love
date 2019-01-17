@@ -1,5 +1,5 @@
 local MapClass = require "map/mapClass"
-require "mapUnit/mapUnit"
+local MapUnit = require "mapUnit/mapUnit"
 require "mapUnit/unitMove"
 require "tests/utility/map"
 local lunit = require "libraries/unitTesting/lunitx"
