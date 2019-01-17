@@ -1,16 +1,24 @@
 --[[ This module handles drawing Units on the Map.
 --]]
 
-MapUnitDrawing={}
-function MapUnitDrawing:new(graphicsContext)
-  self.graphicsContext = graphicsContext
-  -- Rename to world location
-  self.x = nil
-  self.y = nil
+local MapUnitDrawing={}
+MapUnitDrawing.__index = MapUnitDrawing
 
-  self.destination = {x=nil, y=nil}
-  self.finishedMovingCallback = nil
-  return self
+function MapUnitDrawing:new(graphicsContext)
+  --[[ Create a new object.
+  --]]
+  local newDrawing = {}
+  setmetatable(newDrawing,MapUnitDrawing)
+
+  newDrawing.graphicsContext = graphicsContext
+  -- Rename to world location
+  newDrawing.x = nil
+  newDrawing.y = nil
+
+  newDrawing.destination = {x=nil, y=nil}
+  newDrawing.finishedMovingCallback = nil
+
+  return newDrawing
 end
 function MapUnitDrawing:load(unitJson)
   -- Load the Unit and its images.
@@ -86,3 +94,5 @@ function MapUnitDrawing:moveToTile(column, row, callback)
   self.destination.y = unitY
   self.finishedMovingCallback = callback
 end
+
+return MapUnitDrawing
