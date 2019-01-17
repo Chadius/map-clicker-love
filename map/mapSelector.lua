@@ -1,9 +1,14 @@
 local MapSelector={}
+MapSelector.__index = MapSelector
 
 function MapSelector:new()
-  self.column=nil
-  self.row=nil
-  return self
+  --[[ Create a new path.
+  --]]
+  local newSelector = {}
+  setmetatable(newSelector,MapSelector)
+  newSelector.column=nil
+  newSelector.row=nil
+  return newSelector
 end
 function MapSelector:selectTile(column, row)
   if column ~= nil then
