@@ -2,10 +2,15 @@
 Hold all of the graphics information not built into the system.
 --]]
 
-GraphicsContext={}
+local GraphicsContext={}
+GraphicsContext.__index = GraphicsContext
+
 function GraphicsContext:new()
-  self.tileSize = 64
-  return self
+  local newContext = {}
+  setmetatable(newContext,GraphicsContext)
+
+  newContext.tileSize = 64
+  return newContext
 end
 function GraphicsContext:getTileSize()
   return self.tileSize
@@ -31,3 +36,5 @@ function GraphicsContext:getTileCoordinate(column, row)
 
   return x, y
 end
+
+return GraphicsContext

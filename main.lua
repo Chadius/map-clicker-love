@@ -13,7 +13,7 @@ function love.load()
   -- Allow users to repeat keyboard presses.
   love.keyboard.setKeyRepeat(true)
 
-  require 'audiovisual/graphicsContext'
+  local GraphicsContext = require 'audiovisual/graphicsContext'
   graphicsContext = GraphicsContext:new{}
 
   local MapClass = require 'map/mapClass'
