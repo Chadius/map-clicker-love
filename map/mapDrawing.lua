@@ -6,13 +6,19 @@ local function readFile(file)
   return content
 end
 
-MapDrawing={}
+local MapDrawing={}
+MapDrawing.__index = MapDrawing
+
 function MapDrawing:new(graphicsContext)
-  self.movementTileToImageIndex={}
-  self.graphicsContext = graphicsContext
-  self.mapTileSpriteSheet = nil
-  self.mapTileImageByTerrain = {}
-  return self
+  local newDrawing = {}
+  setmetatable(newDrawing,MapDrawing)
+
+  newDrawing.movementTileToImageIndex={}
+  newDrawing.graphicsContext = graphicsContext
+  newDrawing.mapTileSpriteSheet = nil
+  newDrawing.mapTileImageByTerrain = {}
+
+  return newDrawing
 end
 function MapDrawing:load(mapJson)
   -- Get the terrain sprite sheet.
@@ -119,3 +125,5 @@ function MapDrawing:getTileClickedOn(x, y, width, height)
 
   return column, row
 end
+
+return MapDrawing

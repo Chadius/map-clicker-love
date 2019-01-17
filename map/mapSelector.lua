@@ -1,4 +1,5 @@
-MapSelector={}
+local MapSelector={}
+
 function MapSelector:new()
   self.column=nil
   self.row=nil
@@ -14,3 +15,5 @@ function MapSelector:selectTile(column, row)
     self.row = nil
   end
 end
+
+return MapSelector
