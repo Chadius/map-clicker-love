@@ -118,11 +118,18 @@ local function should_add_to_search_if_can_be_crossed(mapSearch, next_step, dest
   return true
 end
 
-UnitMove={}
+local UnitMove={}
+UnitMove.__index = UnitMove
+
 function UnitMove:new(...)
-  self.map, self.moveDistance, self.moveType = ...
-  return self
+  --[[ Create a new path.
+  --]]
+  local newMove = {}
+  setmetatable(newMove,UnitMove)
+  newMove.map, newMove.moveDistance, newMove.moveType = ...
+  return newMove
 end
+
 function UnitMove:chartCourse(mapUnit, destination)
   -- Return a single path to the destination, assuming inifinite turns.
   -- Returns nil if the trip is impossible.
@@ -218,3 +225,4 @@ function UnitMove:getTilesWithinMovement(mapUnit, args)
   -- Return all of the visited locations.
   return search.visited
 end
+return UnitMove
