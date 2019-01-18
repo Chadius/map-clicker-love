@@ -158,7 +158,62 @@ function test_check_for_neighbors()
   assert_map_locations_list_found(expected_locations, all_visited, "test_no_movement")
 end
 
-function test_map_paths()
-  -- [[ Test the MapPath object.
+function test_map_paths_empty()
+  -- [[ Initialize an empty MapPath
   -- ]]
+  local path = MapPath:new()
+
+  -- Path should be empty upon creation
+  assert_true(path:empty())
+
+  -- Add a step and confirm it's not empty
+  path:addStep(1,1,0)
+  assert_false(path:empty())
+end
+
+function test_add_step_to_map_path()
+  -- [[ Add Step to path
+  -- Add multiple steps to path
+  -- ]]
+
+  local path = MapPath:new()
+  -- The Path is empty so the total cost is 0.
+  assert_equal(path:totalCost(), 0)
+  -- Add a step with a positive cost.
+  path:addStep(2,2,1)
+  -- Verify the total cost has changed.
+  assert_equal(path:getNumberOfSteps(), 1)
+  assert_equal(path:totalCost(), 1)
+  -- Add another step.
+  path:addStep(3,2,5)
+  -- There are 2 steps in this path.
+  assert_equal(path:getNumberOfSteps(), 2)
+  -- The total cost has increased, too.
+  assert_equal(path:totalCost(), 6)
+end
+
+function test_clone_map_path()
+  -- [[ Clone path
+  -- Add step to cloned path, not original
+  -- ]]
+
+  -- Create the original path.
+  local originalPath = MapPath:new()
+  originalPath:addStep(2,2,1)
+  originalPath:addStep(3,2,5)
+  originalPath:addStep(3,3,2)
+  assert_equal(originalPath:getNumberOfSteps(), 3)
+  assert_equal(originalPath:totalCost(), 8)
+
+  -- Clone this path.
+  local newPath = originalPath:clone()
+  assert_equal(newPath:getNumberOfSteps(), 3)
+  assert_equal(newPath:totalCost(), 8)
+  -- Add another step on the clone and make sure it doesn't affect the original.
+  newPath:addStep(4,2,3)
+  assert_equal(originalPath:getNumberOfSteps(), 3)
+  assert_equal(originalPath:totalCost(), 8)
+
+  assert_equal(newPath:getNumberOfSteps(), 4)
+  assert_equal(newPath:totalCost(), 11)
 end

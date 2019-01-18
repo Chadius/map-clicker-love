@@ -161,16 +161,6 @@ function UnitMove:chartCourse(mapUnit, destination)
     }
   )
 
-  -- TODO print all of the paths
-  if destination.column == 4 and destination.row == 1 then
-    while search.paths:empty() == false do
-      local pth = search.paths:pop()
-      pth:printMe()
-    end
-    print("DONE")
-    return nil
-  end
-
   -- If no top path exists, return nil
   if search.top == nil then
     return nil

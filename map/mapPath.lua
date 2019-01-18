@@ -12,6 +12,14 @@ function MapPath:new()
   newPath.steps = {}
   return newPath
 end
+function MapPath:empty()
+  --[[ Returns true if empty.
+  --]]
+  if #self.steps == 0 then
+    return true
+  end
+  return false
+end
 function MapPath:addStep(column, row, moveCost)
   --[[ Adds the next step to this path.
   --]]
@@ -50,7 +58,7 @@ function MapPath:clone()
   --[[ Returns a new path with the same steps as self.
   --]]
   local newPath = MapPath:new()
-  self.addStepsToPath(newPath)
+  self:addStepsToPath(newPath)
   return newPath
 end
 function MapPath:totalCost()
@@ -98,6 +106,11 @@ function MapPath:getStep(index)
     individual_cost=selected_step.cost,
     cumulative_cost=selected_step.total
   }
+end
+function MapPath:getNumberOfSteps()
+  -- [[ Return the number of steps.
+  -- ]]
+  return #self.steps
 end
 function MapPath:printMe()
   --[[ Print a string representation.
