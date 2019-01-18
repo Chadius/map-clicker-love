@@ -50,7 +50,7 @@ function MapPath:clone()
   --[[ Returns a new path with the same steps as self.
   --]]
   local newPath = MapPath:new()
-  self.addStepsToPath(newPath)
+  self:addStepsToPath(newPath)
   return newPath
 end
 function MapPath:totalCost()

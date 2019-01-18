@@ -162,3 +162,8 @@ function test_map_paths()
   -- [[ Test the MapPath object.
   -- ]]
 end
+
+function test_map_highlight_from_search()
+  -- [[ Test that you can make a search  
+  -- ]]
+end
