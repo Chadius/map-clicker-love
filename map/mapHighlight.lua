@@ -1,4 +1,4 @@
---[[ Higlight multiple coordinates on a map.
+--[[ Map information, stored by column and row.
 --]]
 
 local MapHighlight = {}
@@ -79,7 +79,30 @@ function MapHighlight:getHighlightedList()
 
   return summary
 end
-function MapHighlight:isHighlighted(column, row)
+local function isLocationValid(self, column, row)
+  --[[ Check if the map location at (column, row) is on the map.
+  Args:
+    column(number) : Map column.
+    row(number) : Map row.
+
+  Returns:
+    true if the location is valid.
+  ]]
+  if column < 1 or row < 1 then
+    return false
+  end
+
+  if column > #self.highlights then
+    return false
+  end
+
+  if row > #(self.highlights[1]) then
+    return false
+  end
+
+  return true
+end
+function MapHighlight:getHighlight(column, row)
   --[[ Check if the map location at (column, row) has been highlighted.
   Args:
     column(number) : Map column.
@@ -91,9 +114,12 @@ function MapHighlight:isHighlighted(column, row)
   ]]
 
   -- Make sure column and row is on the highlight.
+  if isLocationValid(self, column, row) == false then
+    return nil
+  end
 
   -- Get the value.
-  return nil
+  return self.highlights[column][row]
 end
 function MapHighlight:setHighlight(column, row, value)
   --[[ Change whether the location at (column, row) is highlighted.
@@ -107,10 +133,35 @@ function MapHighlight:setHighlight(column, row, value)
   ]]
 
   -- Make sure column and row is on the highlight.
+  if isLocationValid(self, column, row) == false then
+    return false
+  end
 
   -- Set the value.
+  self.highlights[column][row] = value
+  return true
+end
+local function fillMatrixWithValue(matrix, value)
+  --[[ Fill all values of the 2D nested table.
+  Args:
+    matrix: A 2D Nested table (will be modified). The first level has the
+      columns and the child is a table with the rows.
+    value: The value to set each entry to.
 
-  return false
+  Returns:
+    true if successful.
+  ]]
+
+  -- Iterate from each column
+  for i, column in ipairs(matrix) do
+    -- Iterate from each row
+    for j, row in ipairs(matrix[i]) do
+      -- Set the value.
+      matrix[i][j] = value
+    end
+  end
+
+  return true
 end
 function MapHighlight:clear(newValue)
   --[[ Sets the highlights of all the locations on the map.
@@ -120,11 +171,7 @@ function MapHighlight:clear(newValue)
   Returns:
     true upon success, false otherwise.
   ]]
-
-  -- Iterate across columns
-  --- Iterate across rows
-  ---- Fill each with the newValue
-  return false
+  return fillMatrixWithValue(self.highlights, newValue)
 end
 function MapHighlight:setDimensions(columns, rows, defaultValue)
   --[[ Resizes the map highlight.
@@ -134,16 +181,41 @@ function MapHighlight:setDimensions(columns, rows, defaultValue)
   Args:
     columns(number)           : Columns in the new map.
     rows(number)              :
-    defaultValue(default=nil) : Sets all of the values for new columns and rows.
+    defaultValue(default=false) : Sets all of the values for new columns and rows.
 
   Returns:
     true upon success, false otherwise.
   ]]
 
+  if columns < 1 or rows < 1 then
+    return false
+  end
+
   -- Make new map matrix of new size
+  local highlights = {}
+
+  -- Iterate from each column
+  for i=1, columns do
+    highlights[i] = {}
+    -- Iterate from each row
+    for j=1, rows do
+      highlights[i][j] = false
+    end
+  end
+
+  local fillValue = false
+  if defaultValue ~= nil then
+    fillValue = defaultValue
+  end
+
   -- Fill the map with defaultValue
+  fillMatrixWithValue(highlights, fillValue)
+
   -- Copy the current highlights into the new matrix.
+  copyMatrix(self.highlights, highlights)
+
   -- Set the matrix to the new one.
-  return false
+  self.highlights = highlights
+  return true
 end
 return MapHighlight
