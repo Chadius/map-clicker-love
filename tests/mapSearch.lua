@@ -217,3 +217,8 @@ function test_clone_map_path()
   assert_equal(newPath:getNumberOfSteps(), 4)
   assert_equal(newPath:totalCost(), 11)
 end
+
+function test_map_highlight_from_search()
+  -- [[ Test that you can make a search  
+  -- ]]
+end
