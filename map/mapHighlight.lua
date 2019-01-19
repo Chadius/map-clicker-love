@@ -15,13 +15,135 @@ function MapHighlight:new()
 
   return newHighlight
 end
-function MapHighlight:copyFromMapMatrix(matrix)
-  --[[ Copy values from the given 2D matrix.
-  --]]
+local function copyMatrix(source)
+  --[[ Create a copy of the values from the source.
+
+  Args:
+    source  (table): Nested table. columns point to a table of rows.
+
+  Returns:
+    A nested table.
+  ]]
+
+  local dest = {}
+
+  -- Iterate across columns
+  for i, col in ipairs(source) do
+    -- Add a new column.
+    dest[i] = {}
+    -- Iterate across rows
+    for j, row in ipairs(source[i]) do
+      -- Add a new row.
+      dest[i][j] = {}
+      -- Fill each with the newValue
+      dest[i][j] = source[i][j]
+    end
+  end
+
+  return dest
 end
-function MapHighlight:flatten()
+function MapHighlight:copyFromMapMatrix(source)
+  --[[ Copy values from the given 2D matrix.
+  Args:
+    source: Nested table. The first level has the columns and the child is a
+      table with the rows. If child value is not nil, then the location is
+      highlighted.
+
+  Returns:
+    true if successful, false otherwise.
+  --]]
+
+  -- Copy the source into a new table.
+  self.highlights = copyMatrix(source)
+end
+function MapHighlight:getHighlightedMap()
+  --[[ Returns a 2D Nested Table with [column][row] locations.
+  --]]
+  return copyMatrix(self.highlights)
+end
+function MapHighlight:getHighlightedList()
   --[[ Returns a list of {column, row} tables.
   -- Each item is a highlighted point.
   --]]
-  return {}
+
+  local summary = {}
+
+  -- Iterate from each column
+  for i, column in ipairs(self.highlights) do
+    -- Iterate from each row
+    for j, row in ipairs(self.highlights[i]) do
+      -- If it's not nil, add it to the visited locations
+      table.insert(summary, {column=i, row=j, highlight=self.highlights[i][j]})
+    end
+  end
+
+  return summary
 end
+function MapHighlight:isHighlighted(column, row)
+  --[[ Check if the map location at (column, row) has been highlighted.
+  Args:
+    column(number) : Map column.
+    row(number) : Map row.
+
+  Returns:
+    the value at that location, usually a boolean.
+    nil if the location is not applicable (usually off the map.)
+  ]]
+
+  -- Make sure column and row is on the highlight.
+
+  -- Get the value.
+  return nil
+end
+function MapHighlight:setHighlight(column, row, value)
+  --[[ Change whether the location at (column, row) is highlighted.
+  Args:
+    column(number)        : Map column.
+    row(number)           : Map row.
+    value: Value to set this location to.
+
+  Returns:
+    true upon success, false otherwise.
+  ]]
+
+  -- Make sure column and row is on the highlight.
+
+  -- Set the value.
+
+  return false
+end
+function MapHighlight:clear(newValue)
+  --[[ Sets the highlights of all the locations on the map.
+  Args:
+    newValue(default=false): Sets all of the values on this map.
+
+  Returns:
+    true upon success, false otherwise.
+  ]]
+
+  -- Iterate across columns
+  --- Iterate across rows
+  ---- Fill each with the newValue
+  return false
+end
+function MapHighlight:setDimensions(columns, rows, defaultValue)
+  --[[ Resizes the map highlight.
+  If more columns and rows are added, fill the defaultValue for new locations.
+  If there are fewer columns or rows, the highest number columns/rows are truncated.
+
+  Args:
+    columns(number)           : Columns in the new map.
+    rows(number)              :
+    defaultValue(default=nil) : Sets all of the values for new columns and rows.
+
+  Returns:
+    true upon success, false otherwise.
+  ]]
+
+  -- Make new map matrix of new size
+  -- Fill the map with defaultValue
+  -- Copy the current highlights into the new matrix.
+  -- Set the matrix to the new one.
+  return false
+end
+return MapHighlight

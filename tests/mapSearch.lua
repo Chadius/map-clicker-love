@@ -3,6 +3,7 @@ require "tests/utility/map"
 local MapClass = require "map/mapClass"
 local PriorityQueue = require "map/priorityQueue"
 local MapPath = require "map/mapPath"
+local MapHighlight = require "map/mapHighlight"
 
 local lunit = require "libraries/unitTesting/lunitx"
 
@@ -193,9 +194,9 @@ function test_add_step_to_map_path()
 end
 
 function test_clone_map_path()
-  -- [[ Clone path
-  -- Add step to cloned path, not original
-  -- ]]
+  --[[ Clone path
+    Add step to cloned path, not original
+  --]]
 
   -- Create the original path.
   local originalPath = MapPath:new()
@@ -219,6 +220,63 @@ function test_clone_map_path()
 end
 
 function test_map_highlight_from_search()
-  -- [[ Test that you can make a search  
-  -- ]]
+  --[[Test that you can make a highlight from a completed search.
+  --]]
+
+  -- Perform a search.
+  local functions = {
+    should_add_to_search=add_neighbors_adjacent_to_origin,
+    should_stop=stop_when_empty
+  }
+
+  local origin = {
+    column=1,
+    row=1
+  }
+
+  testSearch:searchMap(functions, origin)
+
+  -- Assert all locations were found.
+  local expected_locations = {
+    {column=1,row=1},
+    {column=1,row=2},
+    {column=2,row=1},
+    {column=2,row=2}
+  }
+
+  -- Create a new MapHighlight and use the search's visited points as a basis.
+  local highlights = MapHighlight:new()
+  highlights:copyFromMapMatrix(testSearch.visited)
+
+  -- Confirm they have the same locations.
+  local actual_highlights = highlights:getHighlightedMap()
+  assert_map_locations_table_found(expected_locations, actual_highlights, "test_map_highlight_from_search 253")
+
+  -- Assert all locations were found.
+  local actual_highlights_list = highlights:getHighlightedList()
+  assert_map_locations_list_found(expected_locations, actual_highlights_list, "test_map_highlight_from_search 257")
+end
+function test_map_set_dimension_and_highlight()
+  --[[ MapHighlights can change their dimensions and can have highlights.
+  ]]
+
+  -- Make a new MapHighlight and set its dimensions to 3 columns by 2 rows.
+
+  -- Highlight (1,2) and confirm it succeeded.
+
+  -- Highlight (3,2) and confirm it succeeded.
+
+  -- Change the dimensions to 2 columns by 2 rows.
+
+  -- Trying to check (3, 2) should return nil to indicate a nonexistent location.
+
+  -- (1, 2) is still highlighted.
+
+  -- Change the dimensions to 2 columns by 1 row.
+
+  -- Trying to check (1, 2) should return nil to indicate a nonexistent location.
+
+  -- Highlight the entire Map. (1, 1) should be highlighted.
+
+  -- Clear the entire Map. (1, 1) should not be highlighted.
 end

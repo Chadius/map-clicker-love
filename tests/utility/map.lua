@@ -38,7 +38,7 @@ function assert_map_locations_list_found(expected_locations, actual_map, assert_
   -- Assumes actual and expected are a list of tables with column and row keys.
 
   -- Should have visited the expected number of locations
-  assert_equal(#expected_locations, #actual_map)
+  assert_equal(#expected_locations, #actual_map, assert_prepend .. ": Number of locations mismatch: expected " .. #expected_locations .. ", found " .. #actual_map .." instead")
 
   -- For each expected location
   for i, expected in ipairs(expected_locations) do
