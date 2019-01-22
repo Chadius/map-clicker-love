@@ -121,10 +121,32 @@ function MapPath:printMe()
 end
 -- TODO build an iterator.
 function MapPath:iteratorNext(index)
-  if index > self.numberOfSteps() then
+  if index > self:getNumberOfSteps() then
     return nil
   end
   return self:getStep(index)
+end
+
+local function nextStep(path, index)
+  local index = index + 1
+  local value = nil
+  if index <= path:getNumberOfSteps() then
+    value = path:getStep(index)
+    return index, value
+  end
+end
+
+function iterateMapPathSteps(path)
+  --[[ Function used to start iterator over steps.
+  Args:
+    path: A MapPath object.
+
+  Returns:
+    The expression values
+    The invariant state (the map path) and the control variable (starting index value)
+  ]]
+
+  return nextStep, path, 0
 end
 
 return MapPath
