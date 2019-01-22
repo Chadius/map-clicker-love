@@ -3,7 +3,7 @@ require "tests/utility/map"
 local MapClass = require "map/mapClass"
 local PriorityQueue = require "map/priorityQueue"
 local MapPath = require "map/mapPath"
-local MapHighlight = require "map/mapHighlight"
+local MapLayer = require "map/mapLayer"
 
 local lunit = require "libraries/unitTesting/lunitx"
 
@@ -219,8 +219,8 @@ function test_clone_map_path()
   assert_equal(newPath:totalCost(), 11)
 end
 
-function atest_map_highlight_from_search()
-  --[[Test that you can make a highlight from a completed search.
+function atest_map_layer_from_search()
+  --[[Test that you can make a layer from a completed search.
   --]]
 
   -- Perform a search.
@@ -244,60 +244,60 @@ function atest_map_highlight_from_search()
     {column=2,row=2}
   }
 
-  -- Create a new MapHighlight and use the search's visited points as a basis.
-  local highlights = MapHighlight:new()
-  highlights:copyFromMapMatrix(testSearch.visited)
+  -- Create a new MapLayer and use the search's visited points as a basis.
+  local layers = MapLayer:new()
+  layers:copyFromMapMatrix(testSearch.visited)
 
   -- Confirm they have the same locations.
-  local actual_highlights = highlights:getHighlightedMap()
-  assert_map_locations_table_found(expected_locations, actual_highlights, "test_map_highlight_from_search 253")
+  local actual_layers = layers:getLayeredMap()
+  assert_map_locations_table_found(expected_locations, actual_layers, "test_map_layer_from_search 253")
 
   -- Assert all locations were found.
-  local actual_highlights_list = highlights:getHighlightedList()
-  assert_map_locations_list_found(expected_locations, actual_highlights_list, "test_map_highlight_from_search 257")
+  local actual_layers_list = layers:getLayeredList()
+  assert_map_locations_list_found(expected_locations, actual_layers_list, "test_map_layer_from_search 257")
 end
-function test_map_set_dimension_and_highlight()
-  --[[ MapHighlights can change their dimensions and can have highlights.
+function test_map_set_dimension_and_layer()
+  --[[ MapLayers can change their dimensions and can have layers.
   ]]
 
-  -- Make a new MapHighlight and set its dimensions to 3 columns by 2 rows.
-  local highlight = MapHighlight:new()
-  highlight:setDimensions(3, 2)
+  -- Make a new MapLayer and set its dimensions to 3 columns by 2 rows.
+  local layer = MapLayer:new()
+  layer:setDimensions(3, 2)
 
   -- Make sure you can't get offmap information.
-  assert_equal(highlight:getHighlight(0, 1), nil)
-  assert_equal(highlight:getHighlight(4, 1), nil)
-  assert_equal(highlight:getHighlight(1, 0), nil)
-  assert_equal(highlight:getHighlight(1, 3), nil)
+  assert_equal(layer:getLayer(0, 1), nil)
+  assert_equal(layer:getLayer(4, 1), nil)
+  assert_equal(layer:getLayer(1, 0), nil)
+  assert_equal(layer:getLayer(1, 3), nil)
 
-  -- Highlight (1,2) and confirm it succeeded.
-  assert_true(highlight:setHighlight(1, 2, 1))
-  assert_equal(highlight:getHighlight(1, 2), 1)
+  -- Layer (1,2) and confirm it succeeded.
+  assert_true(layer:setLayer(1, 2, 1))
+  assert_equal(layer:getLayer(1, 2), 1)
 
-  -- Highlight (3,2) and confirm it succeeded.
-  assert_true(highlight:setHighlight(3, 2, "A"))
-  assert_equal(highlight:getHighlight(3, 2), "A")
+  -- Layer (3,2) and confirm it succeeded.
+  assert_true(layer:setLayer(3, 2, "A"))
+  assert_equal(layer:getLayer(3, 2), "A")
 
   -- Change the dimensions to 2 columns by 2 rows.
-  assert_true(highlight:setDimensions(2, 2))
+  assert_true(layer:setDimensions(2, 2))
 
   -- Trying to check (3, 2) should return nil to indicate a nonexistent location.
-  assert_false(highlight:setHighlight(3, 2, "bogus"))
-  assert_equal(highlight:getHighlight(3, 2), nil)
+  assert_false(layer:setLayer(3, 2, "bogus"))
+  assert_equal(layer:getLayer(3, 2), nil)
 
-  -- (1, 2) is still highlighted.
-  assert_true(highlight:setHighlight(1, 2, 1))
-  assert_equal(highlight:getHighlight(1, 2), 1)
+  -- (1, 2) is still layered.
+  assert_true(layer:setLayer(1, 2, 1))
+  assert_equal(layer:getLayer(1, 2), 1)
 
   -- Change the dimensions to 2 columns by 1 row.
-  assert_true(highlight:setDimensions(2, 1))
+  assert_true(layer:setDimensions(2, 1))
 
   -- Trying to check (1, 2) should return nil to indicate a nonexistent location.
-  assert_false(highlight:setHighlight(1, 2, 1))
-  assert_equal(highlight:getHighlight(1, 2), nil)
+  assert_false(layer:setLayer(1, 2, 1))
+  assert_equal(layer:getLayer(1, 2), nil)
 
-  -- Highlight the entire Map. (1, 1) should be highlighted.
-  assert_true(highlight:clear("candy"))
-  assert_equal(highlight:getHighlight(1, 1), "candy")
-  assert_equal(highlight:getHighlight(2, 1), "candy")
+  -- Layer the entire Map. (1, 1) should be layered.
+  assert_true(layer:clear("candy"))
+  assert_equal(layer:getLayer(1, 1), "candy")
+  assert_equal(layer:getLayer(2, 1), "candy")
 end

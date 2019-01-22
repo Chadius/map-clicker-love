@@ -1,19 +1,19 @@
 --[[ Map information, stored by column and row.
 --]]
 
-local MapHighlight = {}
-MapHighlight.__index = MapHighlight
+local MapLayer = {}
+MapLayer.__index = MapLayer
 
-function MapHighlight:new()
+function MapLayer:new()
   --[[ Create a new path.
   --]]
-  local newHighlight = {}
-  setmetatable(newHighlight,MapHighlight)
+  local newLayer = {}
+  setmetatable(newLayer,MapLayer)
 
-  -- A 2D matrix. If [column][map] is not nil, then that location was highlighted.
-  newHighlight.highlights = {}
+  -- A 2D matrix. If [column][map] is not nil, then that location was layered.
+  newLayer.infoByLocation = {}
 
-  return newHighlight
+  return newLayer
 end
 local function copyMatrix(source)
   --[[ Create a copy of the values from the source.
@@ -42,38 +42,38 @@ local function copyMatrix(source)
 
   return dest
 end
-function MapHighlight:copyFromMapMatrix(source)
+function MapLayer:copyFromMapMatrix(source)
   --[[ Copy values from the given 2D matrix.
   Args:
     source: Nested table. The first level has the columns and the child is a
       table with the rows. If child value is not nil, then the location is
-      highlighted.
+      layered.
 
   Returns:
     true if successful, false otherwise.
   --]]
 
   -- Copy the source into a new table.
-  self.highlights = copyMatrix(source)
+  self.infoByLocation = copyMatrix(source)
 end
-function MapHighlight:getHighlightedMap()
+function MapLayer:getLayeredMap()
   --[[ Returns a 2D Nested Table with [column][row] locations.
   --]]
-  return copyMatrix(self.highlights)
+  return copyMatrix(self.infoByLocation)
 end
-function MapHighlight:getHighlightedList()
+function MapLayer:getLayeredList()
   --[[ Returns a list of {column, row} tables.
-  -- Each item is a highlighted point.
+  -- Each item is a layered point.
   --]]
 
   local summary = {}
 
   -- Iterate from each column
-  for i, column in ipairs(self.highlights) do
+  for i, column in ipairs(self.infoByLocation) do
     -- Iterate from each row
-    for j, row in ipairs(self.highlights[i]) do
+    for j, row in ipairs(self.infoByLocation[i]) do
       -- If it's not nil, add it to the visited locations
-      table.insert(summary, {column=i, row=j, highlight=self.highlights[i][j]})
+      table.insert(summary, {column=i, row=j, layer=self.infoByLocation[i][j]})
     end
   end
 
@@ -92,18 +92,18 @@ local function isLocationValid(self, column, row)
     return false
   end
 
-  if column > #self.highlights then
+  if column > #self.infoByLocation then
     return false
   end
 
-  if row > #(self.highlights[1]) then
+  if row > #(self.infoByLocation[1]) then
     return false
   end
 
   return true
 end
-function MapHighlight:getHighlight(column, row)
-  --[[ Check if the map location at (column, row) has been highlighted.
+function MapLayer:getLayer(column, row)
+  --[[ Check if the map location at (column, row) has been layered.
   Args:
     column(number) : Map column.
     row(number) : Map row.
@@ -113,16 +113,16 @@ function MapHighlight:getHighlight(column, row)
     nil if the location is not applicable (usually off the map.)
   ]]
 
-  -- Make sure column and row is on the highlight.
+  -- Make sure column and row is on the layer.
   if isLocationValid(self, column, row) == false then
     return nil
   end
 
   -- Get the value.
-  return self.highlights[column][row]
+  return self.infoByLocation[column][row]
 end
-function MapHighlight:setHighlight(column, row, value)
-  --[[ Change whether the location at (column, row) is highlighted.
+function MapLayer:setLayer(column, row, value)
+  --[[ Change whether the location at (column, row) is layered.
   Args:
     column(number)        : Map column.
     row(number)           : Map row.
@@ -132,13 +132,13 @@ function MapHighlight:setHighlight(column, row, value)
     true upon success, false otherwise.
   ]]
 
-  -- Make sure column and row is on the highlight.
+  -- Make sure column and row is on the layer.
   if isLocationValid(self, column, row) == false then
     return false
   end
 
   -- Set the value.
-  self.highlights[column][row] = value
+  self.infoByLocation[column][row] = value
   return true
 end
 local function fillMatrixWithValue(matrix, value)
@@ -163,18 +163,18 @@ local function fillMatrixWithValue(matrix, value)
 
   return true
 end
-function MapHighlight:clear(newValue)
-  --[[ Sets the highlights of all the locations on the map.
+function MapLayer:clear(newValue)
+  --[[ Sets the layers of all the locations on the map.
   Args:
     newValue(default=false): Sets all of the values on this map.
 
   Returns:
     true upon success, false otherwise.
   ]]
-  return fillMatrixWithValue(self.highlights, newValue)
+  return fillMatrixWithValue(self.infoByLocation, newValue)
 end
-function MapHighlight:setDimensions(columns, rows, defaultValue)
-  --[[ Resizes the map highlight.
+function MapLayer:setDimensions(columns, rows, defaultValue)
+  --[[ Resizes the map layer.
   If more columns and rows are added, fill the defaultValue for new locations.
   If there are fewer columns or rows, the highest number columns/rows are truncated.
 
@@ -192,14 +192,14 @@ function MapHighlight:setDimensions(columns, rows, defaultValue)
   end
 
   -- Make new map matrix of new size
-  local highlights = {}
+  local layers = {}
 
   -- Iterate from each column
   for i=1, columns do
-    highlights[i] = {}
+    layers[i] = {}
     -- Iterate from each row
     for j=1, rows do
-      highlights[i][j] = false
+      layers[i][j] = false
     end
   end
 
@@ -209,13 +209,13 @@ function MapHighlight:setDimensions(columns, rows, defaultValue)
   end
 
   -- Fill the map with defaultValue
-  fillMatrixWithValue(highlights, fillValue)
+  fillMatrixWithValue(layers, fillValue)
 
-  -- Copy the current highlights into the new matrix.
-  copyMatrix(self.highlights, highlights)
+  -- Copy the current layers into the new matrix.
+  copyMatrix(self.infoByLocation, layers)
 
   -- Set the matrix to the new one.
-  self.highlights = highlights
+  self.infoByLocation = layers
   return true
 end
-return MapHighlight
+return MapLayer
