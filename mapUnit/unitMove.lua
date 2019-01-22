@@ -71,6 +71,11 @@ local function should_add_to_search_if_within_unit_movement(mapSearch, next_step
   -- Get the movement cost of this tile
   local moveCost = get_move_cost_by_terrain(self, terrainType)
 
+  -- If you can't move onto this terrain, stop
+  if moveCost == nil then
+    return false
+  end
+
   -- If the cost exceeds the moveDistance, return false
   if current_cost + moveCost > self.moveDistance then
     return false

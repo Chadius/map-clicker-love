@@ -93,15 +93,31 @@ function setup()
     {1,1,1,1,1},
      {1,1,1,1,1},
     {1,1,1,1,1},
+
      {1,1,1,1,1},
     {1,1,1,1,1},
+     {1,1,1,1,1},
+
+    {1,1,1,1,1},
+     {1,1,1,1,1},
+    {1,1,1,1,1},
+
+     {1,1,1,1,1},
   }
   testMap.moveTile = {
     {1,2,1,1,1},
      {3,1,4,1,1},
     {1,1,1,1,1},
+
      {1,1,4,1,5},
     {1,1,4,1,1},
+     {4,4,4,4,4},
+
+    {1,1,1,1,1},
+     {1,1,1,1,1},
+    {1,1,1,1,1},
+
+     {1,1,1,1,1},
   }
 
   -- Test Unit
@@ -171,6 +187,55 @@ function assert_map_locations_list_found(expected_locations, actual_map, assert_
   end
 end
 
+function test_adjacent_tiles()
+  --[[
+  Unit can move 1 space.
+  Make sure you get the correct adjacent tiles on even and odd rows.
+  ]]
+
+  -- Make unit with 1 move.
+  testUnit.movement=UnitMove:new(
+    testMap,
+    1,
+    "foot"
+  )
+
+  -- Place it on an odd numbered row.
+  testUnit.mapCoordinates.column=2
+  testUnit.mapCoordinates.row=9
+
+  -- Get adjacent tiles. It can move diagonally left but not rßight.
+  local nearby_tiles = testUnit:getTilesWithinMovement()
+
+  local expected_locations = {
+    {column=2,row=9},
+    {column=1,row=9},
+    {column=3,row=9},
+    {column=1,row=10},
+    {column=1,row=8},
+    {column=2,row=10},
+    {column=2,row=8},
+  }
+  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_adjacent_tiles odd")
+
+  -- Place it on an even numbered row.
+  testUnit.mapCoordinates.column=2
+  testUnit.mapCoordinates.row=8
+
+  -- Get adjacent tiles. It can move diagonally right but not left.
+  local nearby_tiles = testUnit:getTilesWithinMovement()
+  local expected_locations = {
+    {column=2,row=8},
+    {column=1,row=8},
+    {column=3,row=8},
+    {column=3,row=9},
+    {column=3,row=7},
+    {column=2,row=9},
+    {column=2,row=7},
+  }
+  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_adjacent_tiles even")
+end
+
 function atest_unit_has_no_move()
   -- Unit cannot move.
   testUnit.mapCoordinates.column=2
@@ -209,7 +274,7 @@ function atest_unit_has_no_move()
   assert_equal(nil, next_waypoint)
 end
 
-function test_unit_with_1_move_fly()
+function atest_unit_with_1_move_fly()
   -- Unit has 1 movement while flying
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=2
@@ -255,6 +320,18 @@ function test_unit_with_1_move_fly()
   local next_waypoint = testUnit:nextWaypoint(course)
   assert_equal(3, next_waypoint["column"])
   assert_equal(1, next_waypoint["row"])
+
+  -- Chart a course to the space next to the pit. Because you can't stop on a pit, the course should not include the pit space.
+  course = testUnit:chartCourse({column=4,row=2})
+  assert_not_equal(nil, course)
+  course:printMe()
+
+  local index = 1
+  local step = course:iteratorNext(index)
+  while step ~= nil do
+    assert_false(testMap.moveTile[step.row][step.column] == 4)
+    index = index + 1
+  end
 end
 
 function atest_unit_with_1_move_foot()

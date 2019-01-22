@@ -21,7 +21,7 @@ function setup()
   testMap = MapClass:new{}
   testMap.mapTile = {
     {1,1,1},
-    {1,1,1},
+     {1,1,1},
     {1,1,1}
   }
 

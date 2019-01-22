@@ -119,5 +119,12 @@ function MapPath:printMe()
     print(i .. ": (" .. step.column .. "," .. step.row .. ") Cost " .. step.cost .. ", Total " .. step.totalCost)
   end
 end
+-- TODO build an iterator.
+function MapPath:iteratorNext(index)
+  if index > self.numberOfSteps() then
+    return nil
+  end
+  return self:getStep(index)
+end
 
 return MapPath

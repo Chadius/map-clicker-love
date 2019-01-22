@@ -43,13 +43,22 @@ local function getRawNeighbors(self, centralCoordinate, destination, context)
   --]]
   local neighbors = {}
 
+  -- No matter your location, you have 4 raw neighbors: left, right, up, down
   local direction = {}
   table.insert(direction, {column_adj= 0, row_adj=-1})
-  table.insert(direction, {column_adj= 1, row_adj=-1})
   table.insert(direction, {column_adj= 1, row_adj= 0})
-  table.insert(direction, {column_adj= 1, row_adj= 1})
   table.insert(direction, {column_adj= 0, row_adj= 1})
   table.insert(direction, {column_adj=-1, row_adj= 0})
+
+  -- If the row is even, you can move diagonally to the right.
+  if centralCoordinate.row % 2 == 0 then
+    table.insert(direction, {column_adj= 1, row_adj=-1})
+    table.insert(direction, {column_adj= 1, row_adj= 1})
+  else
+    -- If the row is odd, you can move diagonally to the left.
+    table.insert(direction, {column_adj= -1, row_adj=-1})
+    table.insert(direction, {column_adj= -1, row_adj= 1})
+  end
 
   local map = self.map
 
