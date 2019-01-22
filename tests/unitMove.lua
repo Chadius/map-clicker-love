@@ -103,6 +103,8 @@ function setup()
     {1,1,1,1,1},
 
      {1,1,1,1,1},
+    {1,1,1,1,1},
+     {1,1,1,1,1},
   }
   testMap.moveTile = {
     {1,2,1,1,1},
@@ -118,6 +120,8 @@ function setup()
     {1,1,1,1,1},
 
      {1,1,1,1,1},
+    {4,4,4,4,4},
+     {1,5,1,5,1},
   }
 
   -- Test Unit
@@ -274,7 +278,7 @@ function atest_unit_has_no_move()
   assert_equal(nil, next_waypoint)
 end
 
-function test_unit_with_1_move_fly()
+function atest_unit_with_1_move_fly()
   -- Unit has 1 movement while flying
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=2
@@ -324,11 +328,43 @@ function test_unit_with_1_move_fly()
   -- Chart a course to the space next to the pit. Because you can't stop on a pit, the course should not include the pit space.
   course = testUnit:chartCourse({column=4,row=2})
   assert_not_equal(nil, course)
-  course:printMe()
 
   for i, step in iterateMapPathSteps(course) do
     assert_false(testMap.moveTile[step.row][step.column] == 4)
   end
+end
+
+function test_fly_over_pits()
+  --[[ Unit can fly 2 spaces.
+  Make sure it can chart courses over 1 space pits.
+  ]]
+  testUnit.mapCoordinates.column=1
+  testUnit.mapCoordinates.row=12
+
+  testUnit.movement=UnitMove:new(
+    testMap,
+    2,
+    "fly"
+  )
+
+  -- Make sure it can reach across the pit this turn.
+  local nearby_tiles = testUnit:getTilesWithinMovement()
+  local expected_locations = {
+    {column=1,row=12},
+    {column=3,row=12},
+  }
+
+  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_fly_over_pits")
+
+  -- It can chart a course over the pits, to the other side by stopping on the middle tile.
+  local course = testUnit:chartCourse({column=3,row=12})
+  assert_not_equal(nil, course)
+  local next_waypoint = testUnit:nextWaypoint(course)
+  assert_equal(3, next_waypoint["column"])
+  assert_equal(12, next_waypoint["row"])
+
+  course = testUnit:chartCourse({column=5,row=12})
+  assert_not_equal(nil, course)
 end
 
 function atest_unit_with_1_move_foot()

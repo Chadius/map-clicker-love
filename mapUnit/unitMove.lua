@@ -107,7 +107,8 @@ local function should_add_to_search_if_can_be_crossed(mapSearch, next_step, dest
   end
 
   -- On foot units cannot cross pits.
-  if terrainType == 5 then
+  local canFlyOverPits = self.moveType == "fly"
+  if terrainType == 5 and canFlyOverPits ~= true then
     return false
   end
 
@@ -182,6 +183,25 @@ function UnitMove:chartCourse(mapUnit, destination)
   -- The path is not possible.
   return nil
 end
+
+function UnitMove:canStopOnSpace(step)
+  --[[ Make sure the unit can stop at the given location.
+  Args:
+    step: The location the unit has arrived.
+
+  Returns:
+    True if the unit can stop at this point, false otherwise.
+  ]]
+
+  -- Make sure the unit can stop on that terrain.
+  local terrainType = self.map:getTileTerrain(step)
+
+  -- If they can't stop there, then move on to the next step.
+  if terrainType ~= 5 then
+    return step
+  end
+end
+
 function UnitMove:nextWaypoint(mapUnit, course)
   --[[ Following the course, return the next location within move distance.
   Returns nil if:
@@ -208,7 +228,20 @@ function UnitMove:nextWaypoint(mapUnit, course)
     return nil
   end
 
-  return course:getStep(current_step_index+1)
+  -- Find the furthest step you can reach.
+  local furthest_step = nil
+  while current_step_index <= course:getNumberOfSteps() do
+    -- Get the next step.
+    current_step_index = current_step_index + 1
+    local next_step = course:getStep(current_step_index)
+
+    -- Make sure you can actually stop on this space.
+    if next_step ~= nill and self:canStopOnSpace(next_step) then
+      furthest_step = next_step
+    end
+  end
+
+  return furthest_step
 end
 
 function UnitMove:getTilesWithinMovement(mapUnit, args)

@@ -26,7 +26,7 @@ local function nextMapSearch(self, destination, context)
   local column = step["column"]
   local row = step["row"]
 
-  -- Mark the location as visited
+  -- Mark the location as visited.
   if self.visited[column] == nil then
     self.visited[column] = {}
   end
