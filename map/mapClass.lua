@@ -1,4 +1,5 @@
 local MapSearch = require "map/mapSearch"
+local TerrainType = require("map/terrainType")
 
 local function readFile(file)
   local f = assert(io.open(file, "rb"))
@@ -104,7 +105,9 @@ function MapClass:getTileTerrain(coordinate)
   end
   local column = coordinate["column"]
   local row = coordinate["row"]
-  return self.moveTile[row][column]
+
+  local type = TerrainType.id[self.moveTile[row][column]]
+  return type
 end
 
 return MapClass

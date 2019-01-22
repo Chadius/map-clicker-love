@@ -1,6 +1,7 @@
 local MapClass = require "map/mapClass"
 local MapUnit = require "mapUnit/mapUnit"
 local UnitMove = require "mapUnit/unitMove"
+local TerrainType = require("map/terrainType")
 require "tests/utility/map"
 local lunit = require "libraries/unitTesting/lunitx"
 require "libraries/table"
@@ -278,7 +279,7 @@ function atest_unit_has_no_move()
   assert_equal(nil, next_waypoint)
 end
 
-function atest_unit_with_1_move_fly()
+function test_unit_with_1_move_fly()
   -- Unit has 1 movement while flying
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=2
@@ -330,7 +331,7 @@ function atest_unit_with_1_move_fly()
   assert_not_equal(nil, course)
 
   for i, step in iterateMapPathSteps(course) do
-    assert_false(testMap.moveTile[step.row][step.column] == 4)
+    assert_true(TerrainType.id[testMap.moveTile[step.row][step.column]].canStopOn)
   end
 end
 

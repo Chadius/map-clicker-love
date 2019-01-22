@@ -1,3 +1,5 @@
+local TerrainType = require("map/terrainType")
+
 -- [[ This class handles a unit's movement. This includes:
 --- Type of movement
 --- Navigating on maps
@@ -9,17 +11,8 @@ local function get_move_cost_by_terrain(unitMove, terrainType)
   -- Returns a number representing the movement cost to cross.
   -- Returns nil if it can't be crossed.
 
-  -- TODO terrainType may be something more sophisticated some day.
-  -- [[ TODO We're hard coding the terrain types for now.
-  -- 1 = Concrete
-  -- 2 = Grass
-  -- 3 = Mud
-  -- 4 = Wall
-  -- 5 = Pit
-  -- ]]
-
   -- Walls cannot be crossed.
-  if terrainType == 4 then
+  if (terrainType.canStopOn or terrainType.canFlyOver) == false then
     return nil
   end
 
@@ -29,18 +22,12 @@ local function get_move_cost_by_terrain(unitMove, terrainType)
   end
 
   -- On foot units cannot cross pits.
-  if terrainType == 5 then
+  if terrainType.canStopOn == false then
     return nil
   end
 
   -- Return the move cost.
-  if terrainType == 2 then
-    return 2
-  end
-  if terrainType == 3 then
-    return 3
-  end
-  return 1
+  return terrainType.movementCost
 end
 
 local function should_add_to_search_if_within_unit_movement(mapSearch, next_step, destination, context)
@@ -55,16 +42,8 @@ local function should_add_to_search_if_within_unit_movement(mapSearch, next_step
   -- If this neighbor is in a wall, return false
   local terrainType = self.map:getTileTerrain(next_step)
 
-  -- [[ TODO We're hard coding the terrain types for now.
-  -- 1 = Concrete
-  -- 2 = Grass
-  -- 3 = Mud
-  -- 4 = Wall
-  -- 5 = Pit
-  -- ]]
-
   -- You cannot cross walls.
-  if terrainType == 4 then
+  if (terrainType.canStopOn or terrainType.canFlyOver) == false then
     return false
   end
 
@@ -93,22 +72,13 @@ local function should_add_to_search_if_can_be_crossed(mapSearch, next_step, dest
   -- If this neighbor is in a wall, return false
   local terrainType = self.map:getTileTerrain(next_step)
 
-  -- [[ TODO We're hard coding the terrain types for now.
-  -- 1 = Concrete
-  -- 2 = Grass
-  -- 3 = Mud
-  -- 4 = Wall
-  -- 5 = Pit
-  -- ]]
-
-  -- You cannot cross walls.
-  if terrainType == 4 then
+  if (terrainType.canStopOn or terrainType.canFlyOver) == false then
     return false
   end
 
   -- On foot units cannot cross pits.
   local canFlyOverPits = self.moveType == "fly"
-  if terrainType == 5 and canFlyOverPits ~= true then
+  if terrainType.canStopOn == false and canFlyOverPits ~= true then
     return false
   end
 
@@ -146,6 +116,12 @@ function UnitMove:chartCourse(mapUnit, destination)
   end
   if destination.row == nil then
     print("destination doesn't have a row key")
+    return nil
+  end
+
+  -- If you can't stop on the destination on the map, the trip is impossible.
+  local terrainType = self.map:getTileTerrain({column=destination.column,row=destination.row})
+  if terrainType.canStopOn == false then
     return nil
   end
 
@@ -197,9 +173,10 @@ function UnitMove:canStopOnSpace(step)
   local terrainType = self.map:getTileTerrain(step)
 
   -- If they can't stop there, then move on to the next step.
-  if terrainType ~= 5 then
-    return step
+  if terrainType.canStopOn then
+    return true
   end
+  return false
 end
 
 function UnitMove:nextWaypoint(mapUnit, course)
@@ -228,7 +205,7 @@ function UnitMove:nextWaypoint(mapUnit, course)
     return nil
   end
 
-  -- Find the furthest step you can reach.
+  -- Find the furthest step you can reach with a single move.
   local furthest_step = nil
   while current_step_index <= course:getNumberOfSteps() do
     -- Get the next step.
@@ -236,8 +213,10 @@ function UnitMove:nextWaypoint(mapUnit, course)
     local next_step = course:getStep(current_step_index)
 
     -- Make sure you can actually stop on this space.
-    if next_step ~= nill and self:canStopOnSpace(next_step) then
-      furthest_step = next_step
+    if next_step ~= nil then
+      if self:canStopOnSpace(next_step) and next_step.cumulative_cost <= self.moveDistance then
+        furthest_step = next_step
+      end
     end
   end
 

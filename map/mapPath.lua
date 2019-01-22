@@ -104,7 +104,7 @@ function MapPath:getStep(index)
     column=selected_step.column,
     row=selected_step.row,
     individual_cost=selected_step.cost,
-    cumulative_cost=selected_step.total
+    cumulative_cost=selected_step.totalCost
   }
 end
 function MapPath:getNumberOfSteps()
