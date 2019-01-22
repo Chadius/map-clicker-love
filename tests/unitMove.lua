@@ -192,7 +192,7 @@ function assert_map_locations_list_found(expected_locations, actual_map, assert_
   end
 end
 
-function atest_adjacent_tiles()
+function test_adjacent_tiles()
   --[[
   Unit can move 1 space.
   Make sure you get the correct adjacent tiles on even and odd rows.
@@ -241,7 +241,7 @@ function atest_adjacent_tiles()
   assert_map_locations_table_found(expected_locations, nearby_tiles, "test_adjacent_tiles even")
 end
 
-function atest_unit_has_no_move()
+function test_unit_has_no_move()
   -- Unit cannot move.
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=3
@@ -368,7 +368,7 @@ function test_fly_over_pits()
   assert_not_equal(nil, course)
 end
 
-function atest_unit_with_1_move_foot()
+function test_unit_with_1_move_foot()
   -- Unit has 1 movement on foot
   testUnit.mapCoordinates.column=2
   testUnit.mapCoordinates.row=2

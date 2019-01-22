@@ -75,7 +75,7 @@ function skip_test_bad_params()
   assert_equal(testSearch.search_errors, "function table is missing should_add_to_search")
 end
 
-function atest_no_movement()
+function test_no_movement()
   -- Start searching in the middle of the map.
   -- Stop after 1 iteration.
   -- Results should have 1 item, the start point.
@@ -219,7 +219,7 @@ function test_clone_map_path()
   assert_equal(newPath:totalCost(), 11)
 end
 
-function atest_map_layer_from_search()
+function test_map_layer_from_search()
   --[[Test that you can make a layer from a completed search.
   --]]
 
