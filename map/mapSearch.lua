@@ -1,5 +1,6 @@
 local PriorityQueue = require "map/priorityQueue"
 local MapPath = require "map/mapPath"
+local MapLayer = require "map/mapLayer"
 
 local function startMapSearch(self, destination, context)
   -- Default map start.
@@ -27,10 +28,7 @@ local function nextMapSearch(self, destination, context)
   local row = step["row"]
 
   -- Mark the location as visited.
-  if self.visited[column] == nil then
-    self.visited[column] = {}
-  end
-  self.visited[column][row] = 1
+  self.visited:setLayer(column, row, 1)
 
   -- If a destination was provided, stop if the next step is there.
   if destination ~= nil and destination.column == step.column and destination.row == step.row then
@@ -121,7 +119,7 @@ function MapSearch:new(map)
   newSearch.paths = PriorityQueue()
   newSearch.map = map
   newSearch.stop_search = false
-  newSearch.visited = {}
+  newSearch.visited = MapLayer:new()
   newSearch.functions = {
     start=nil,
     next=nil,
@@ -155,7 +153,7 @@ end
 
   Returns: None.
   Side Effects include:
-    self.visited will contain all of the locations visited.
+    self.visited will by a MapLayer containing all of the locations visited during the search.
 ]]
 function MapSearch:searchMap(functions, origin, destination, context)
   -- origin must contain a row and column
@@ -186,9 +184,13 @@ function MapSearch:searchMap(functions, origin, destination, context)
   self.origin = origin
   self.top = nil
   self.paths = PriorityQueue()
-  --self.map = map
   self.stop_search = false
-  self.visited = {}
+
+  -- Visited is a MapLayer. Set it to the dimensions of the map. By default, set visited to false.
+  self.visited = MapLayer:new()
+  local columns, rows = self.map:getDimensions()
+  self.visited:setDimensions(columns, rows, false)
+
   self.functions = {
     start=functions["start"],
     next=functions["next"],
@@ -260,9 +262,11 @@ function MapSearch:isAlreadyVisited(coordinate)
   local coordColumn = coordinate["column"]
   local coordRow = coordinate["row"]
 
-  local alreadyVisited = (self.visited[coordColumn] ~= nil and self.visited[coordColumn][coordRow] ~= nil)
+  if self.visited:getLayer(coordColumn, coordRow) ~= false then
+    return true
+  end
 
-  return (alreadyVisited == true)
+  return false
 end
 
 function MapSearch:getNeighboringCoordinates(centralCoordinate)
@@ -323,18 +327,8 @@ end
 
 function MapSearch:getAllVisitedLocations()
   -- Return a table containing one table for each visited entry.
-  local visited = {}
 
-  -- Iterate from each column
-  for column, column_table in pairs(self.visited) do
-    -- Iterate from each row
-    for row, row_found in pairs(column_table) do
-      -- If it's not nil, add it to the visited locations
-      table.insert(visited, {column=column, row=row})
-    end
-  end
-
-  return visited
+  return self.visited:getLayeredMap()
 end
 
 return MapSearch

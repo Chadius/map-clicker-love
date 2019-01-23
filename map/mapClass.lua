@@ -75,7 +75,17 @@ function MapClass:getTileClickedOn(x, y)
     #self.mapTile -- height
   )
 end
+function MapClass:getDimensions()
+  --[[ Returns the width and height of the map.
+  Args:
+    None.
 
+  Returns:
+    Two numbers. One is the number of columns, the other is the number of rows.
+  ]]
+
+  return #(self.mapTile[1]), #self.mapTile
+end
 function MapClass:searchMap(functions, origin)
   -- origin must contain a row and column
   return self.search:searchMap(functions, origin)

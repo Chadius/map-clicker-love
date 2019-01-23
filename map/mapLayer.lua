@@ -72,8 +72,8 @@ function MapLayer:getLayeredList()
   for i, column in ipairs(self.infoByLocation) do
     -- Iterate from each row
     for j, row in ipairs(self.infoByLocation[i]) do
-      -- If it's not nil, add it to the visited locations
-      table.insert(summary, {column=i, row=j, layer=self.infoByLocation[i][j]})
+      -- If it's not nil, add it to the location
+      table.insert(summary, {column=i, row=j, value=self.infoByLocation[i][j]})
     end
   end
 

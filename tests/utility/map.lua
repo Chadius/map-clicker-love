@@ -37,9 +37,6 @@ function assert_map_locations_list_found(expected_locations, actual_map, assert_
   -- Asserts all of the expected and actual locations were found.
   -- Assumes actual and expected are a list of tables with column and row keys.
 
-  -- Should have visited the expected number of locations
-  assert_equal(#expected_locations, #actual_map, assert_prepend .. ": Number of locations mismatch: expected " .. #expected_locations .. ", found " .. #actual_map .." instead")
-
   -- For each expected location
   for i, expected in ipairs(expected_locations) do
     -- Look through the actual visited locations to see if they match.
@@ -56,4 +53,11 @@ function assert_map_locations_list_found(expected_locations, actual_map, assert_
   for i, expected in ipairs(expected_locations) do
     assert_true(expected["found"], assert_prepend .. ": (" .. expected["column"] .. "," .. expected["row"] ..") not found")
   end
+
+  -- Count the number of non-false elements and make sure they are the same amount.
+  local non_false_count = 0
+  for i, actual in ipairs(actual_map) do
+    if actual.value then non_false_count = non_false_count + 1 end
+  end
+  assert_equal(#expected_locations, non_false_count, assert_prepend .. ": Number of locations mismatch: expected " .. #expected_locations .. ", found " .. non_false_count .." instead")
 end
