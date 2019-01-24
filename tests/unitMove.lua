@@ -2,6 +2,8 @@ local MapClass = require "map/mapClass"
 local MapUnit = require "mapUnit/mapUnit"
 local UnitMove = require "mapUnit/unitMove"
 local TerrainType = require("map/terrainType")
+local MapLayer = require "map/mapLayer"
+
 require "tests/utility/map"
 local lunit = require "libraries/unitTesting/lunitx"
 require "libraries/table"
@@ -90,24 +92,25 @@ local testUnit = nil
 function setup()
   -- Test Map is a 3x3 grid
   testMap = MapClass:new{}
-  local rawMapTile = {
-    {1,1,1,1,1},
-     {1,1,1,1,1},
-    {1,1,1,1,1},
+  testMap.mapTile = MapLayer:new({
+    data={
+      {1,1,1,1,1},
+       {1,1,1,1,1},
+      {1,1,1,1,1},
 
-     {1,1,1,1,1},
-    {1,1,1,1,1},
-     {1,1,1,1,1},
+       {1,1,1,1,1},
+      {1,1,1,1,1},
+       {1,1,1,1,1},
 
-    {1,1,1,1,1},
-     {1,1,1,1,1},
-    {1,1,1,1,1},
+      {1,1,1,1,1},
+       {1,1,1,1,1},
+      {1,1,1,1,1},
 
-     {1,1,1,1,1},
-    {1,1,1,1,1},
-     {1,1,1,1,1},
-  }
-  testMap.mapTile:copyFromMapMatrix(rawMapTile)
+       {1,1,1,1,1},
+      {1,1,1,1,1},
+       {1,1,1,1,1},
+    }
+  })
 
   testMap.moveTile = {
     {1,2,1,1,1},
