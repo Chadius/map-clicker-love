@@ -242,10 +242,6 @@ function UnitMove:getTilesWithinMovement(mapUnit, args)
     }
   )
 
-  -- If the flatten argument was supplied, flatten the results before returning.
-  if args and args["flatten"] ~= nil then
-    return search:getAllVisitedLocations()
-  end
   -- Return all of the visited locations.
   return search.visited
 end

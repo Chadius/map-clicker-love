@@ -104,10 +104,11 @@ function test_no_movement()
   local expected_locations = {
     {column=2,row=3},
   }
+
   assert_map_locations_table_found(expected_locations, testSearch.visited:getLayeredMap(), "test_no_movement")
 
   -- There is only 1 visited point, at (2,3)
-  local all_visited = testSearch.visited:getLayeredList() --testSearch:getAllVisitedLocations()
+  local all_visited = testSearch.visited:getLayeredList()
   assert_map_locations_list_found(expected_locations, all_visited, "test_no_movement list")
 end
 
@@ -125,7 +126,7 @@ function add_neighbors_adjacent_to_origin(mapSearch, coord)
   return (adjacentToOrigin == true)
 end
 
-function atest_check_for_neighbors()
+function test_check_for_neighbors()
   -- Start searching in a corner of the map.
   -- Add neighbors on the map, maximum cost is 1.
   -- Results should have 3 items.
@@ -150,15 +151,15 @@ function atest_check_for_neighbors()
     {column=2,row=2}
   }
 
-  local visited_locations = testSearch.visited
-  assert_map_locations_table_found(expected_locations, testSearch.visited, "test_no_movement")
+  local visited_locations = testSearch.visited:getLayeredMap()
+  assert_map_locations_table_found(expected_locations, testSearch.visited:getLayeredMap(), "test_check_for_neighbors map")
 
   -- Assert all locations were found.
-  local all_visited = testSearch:getAllVisitedLocations()
-  assert_map_locations_list_found(expected_locations, all_visited, "test_no_movement")
+  local all_visited = testSearch.visited:getLayeredList()
+  assert_map_locations_list_found(expected_locations, all_visited, "test_check_for_neighbors list")
 end
 
-function atest_map_paths_empty()
+function test_map_paths_empty()
   -- [[ Initialize an empty MapPath
   -- ]]
   local path = MapPath:new()
@@ -171,7 +172,7 @@ function atest_map_paths_empty()
   assert_false(path:empty())
 end
 
-function atest_add_step_to_map_path()
+function test_add_step_to_map_path()
   -- [[ Add Step to path
   -- Add multiple steps to path
   -- ]]
@@ -192,7 +193,7 @@ function atest_add_step_to_map_path()
   assert_equal(path:totalCost(), 6)
 end
 
-function atest_clone_map_path()
+function test_clone_map_path()
   --[[ Clone path
     Add step to cloned path, not original
   --]]
@@ -218,7 +219,7 @@ function atest_clone_map_path()
   assert_equal(newPath:totalCost(), 11)
 end
 
-function atest_map_layer_from_search()
+function test_map_layer_from_search()
   --[[Test that you can make a layer from a completed search.
   --]]
 
@@ -245,7 +246,7 @@ function atest_map_layer_from_search()
 
   -- Create a new MapLayer and use the search's visited points as a basis.
   local layers = MapLayer:new()
-  layers:copyFromMapMatrix(testSearch.visited)
+  layers:copyFromMapMatrix(testSearch.visited:getLayeredMap())
 
   -- Confirm they have the same locations.
   local actual_layers = layers:getLayeredMap()
@@ -255,7 +256,7 @@ function atest_map_layer_from_search()
   local actual_layers_list = layers:getLayeredList()
   assert_map_locations_list_found(expected_locations, actual_layers_list, "test_map_layer_from_search 257")
 end
-function atest_map_set_dimension_and_layer()
+function test_map_set_dimension_and_layer()
   --[[ MapLayers can change their dimensions and can have layers.
   ]]
 

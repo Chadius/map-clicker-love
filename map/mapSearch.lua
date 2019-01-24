@@ -325,10 +325,4 @@ function MapSearch:addNewPathsWithNeighbors(neighbors)
   end
 end
 
-function MapSearch:getAllVisitedLocations()
-  -- Return a table containing one table for each visited entry.
-
-  return self.visited:getLayeredMap()
-end
-
 return MapSearch

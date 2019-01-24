@@ -172,7 +172,7 @@ function assert_map_locations_list_found(expected_locations, actual_map, assert_
   -- Assumes actual and expected are a list of tables with column and row keys.
 
   -- Should have visited the expected number of locations
-  assert_equal(#expected_locations, #actual_map, assert_prepend .. ": " .. "expected " .. #expected_locations .. ", but found " .. #actual_map)
+  assert_equal(#expected_locations, #actual_map, assert_prepend .. ": " .. "expected " .. #expected_locations .. " item, but found " .. #actual_map)
 
   -- For each expected location
   for i, expected in ipairs(expected_locations) do
@@ -221,7 +221,7 @@ function test_adjacent_tiles()
     {column=2,row=10},
     {column=2,row=8},
   }
-  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_adjacent_tiles odd")
+  assert_map_locations_table_found(expected_locations, nearby_tiles:getLayeredMap(), "test_adjacent_tiles odd")
 
   -- Place it on an even numbered row.
   testUnit.mapCoordinates.column=2
@@ -238,7 +238,7 @@ function test_adjacent_tiles()
     {column=2,row=9},
     {column=2,row=7},
   }
-  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_adjacent_tiles even")
+  assert_map_locations_table_found(expected_locations, nearby_tiles:getLayeredMap(), "test_adjacent_tiles even")
 end
 
 function test_unit_has_no_move()
@@ -257,10 +257,9 @@ function test_unit_has_no_move()
   local expected_locations = {
     {column=2,row=3},
   }
-  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_unit_has_no_move")
+  assert_map_locations_table_found(expected_locations, nearby_tiles:getLayeredMap(), "test_unit_has_no_move map")
 
-  local list_of_tiles = testUnit:getTilesWithinMovement{flatten=true}
-  assert_map_locations_list_found(expected_locations, list_of_tiles, "test_unit_has_no_move")
+  assert_map_locations_list_found(expected_locations, nearby_tiles:getLayeredList({skipValue=false}), "test_unit_has_no_move list")
 
   -- Unit can't chart courses because it can't move there.
   local course = testUnit:chartCourse({column=2,row=2})
@@ -301,10 +300,10 @@ function test_unit_with_1_move_fly()
     {column=3,row=3},
   }
 
-  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_unit_with_1_move_fly 232")
+  assert_map_locations_table_found(expected_locations, nearby_tiles:getLayeredMap(), "test_unit_with_1_move_fly 232")
 
-  local list_of_tiles = testUnit:getTilesWithinMovement{flatten=true}
-  assert_map_locations_list_found(expected_locations, list_of_tiles, "test_unit_with_1_move_fly 235")
+  local list_of_tiles = testUnit:getTilesWithinMovement()
+  assert_map_locations_list_found(expected_locations, list_of_tiles:getLayeredList{skipValue=false}, "test_unit_with_1_move_fly 235")
 
   -- Unit can chart courses to anywhere except walls.
   local course = testUnit:chartCourse({column=1,row=1})
@@ -355,7 +354,7 @@ function test_fly_over_pits()
     {column=3,row=12},
   }
 
-  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_fly_over_pits")
+  assert_map_locations_table_found(expected_locations, nearby_tiles:getLayeredMap(), "test_fly_over_pits")
 
   -- It can chart a course over the pits, to the other side by stopping on the middle tile.
   local course = testUnit:chartCourse({column=3,row=12})
@@ -390,7 +389,7 @@ function test_unit_with_1_move_foot()
     {column=2,row=3},
     {column=3,row=3},
   }
-  assert_map_locations_table_found(expected_locations, nearby_tiles, "test_unit_with_1_move_foot")
+  assert_map_locations_table_found(expected_locations, nearby_tiles:getLayeredMap(), "test_unit_with_1_move_foot")
 
   -- Unit can chart courses to concrete terrain.
   local course = testUnit:chartCourse({column=1,row=3})

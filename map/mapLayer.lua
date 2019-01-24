@@ -61,10 +61,24 @@ function MapLayer:getLayeredMap()
   --]]
   return copyMatrix(self.infoByLocation)
 end
-function MapLayer:getLayeredList()
+function MapLayer:getMap()
+  --[[ Alternate name for getLayeredMap.
+  --]]
+  return self:getLayeredMap()
+end
+function MapLayer:getLayeredList(options)
   --[[ Returns a list of {column, row} tables.
   -- Each item is a layered point.
+
+    Options(optional, default {}): A table containing keys as options:
+      skipValue: Do not add items with this value.
   --]]
+
+  local skipValue = nil
+
+  if options then
+    skipValue = options["skipValue"]
+  end
 
   local summary = {}
 
@@ -72,12 +86,19 @@ function MapLayer:getLayeredList()
   for i, column in ipairs(self.infoByLocation) do
     -- Iterate from each row
     for j, row in ipairs(self.infoByLocation[i]) do
-      -- If it's not nil, add it to the location
-      table.insert(summary, {column=i, row=j, value=self.infoByLocation[i][j]})
+      -- If it's not the skipValue, add it to the location
+      if self.infoByLocation[i][j] ~= skipValue then
+        table.insert(summary, {column=i, row=j, value=self.infoByLocation[i][j]})
+      end
     end
   end
 
   return summary
+end
+function MapLayer:getList(options)
+  --[[ Alternate name for getLayeredList.
+  --]]
+  return self:getLayeredList(options)
 end
 local function isLocationValid(self, column, row)
   --[[ Check if the map location at (column, row) is on the map.
@@ -217,5 +238,24 @@ function MapLayer:setDimensions(columns, rows, defaultValue)
   -- Set the matrix to the new one.
   self.infoByLocation = layers
   return true
+end
+function MapLayer:printMe()
+  local columns = #self.infoByLocation
+  local rows = #self.infoByLocation[1]
+  print(columns .. " x " .. rows)
+
+  -- Iterate across columns
+  for i, col in ipairs(self.infoByLocation) do
+    if i < 10 then
+      print("Row  " .. i .. ":")
+    else
+      print("Row " .. i .. ":")
+    end
+
+    -- Iterate across rows
+    for j, row in ipairs(self.infoByLocation[i]) do
+      print (self.infoByLocation[i][j])
+    end
+  end
 end
 return MapLayer
