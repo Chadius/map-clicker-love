@@ -96,11 +96,12 @@ function MapLayer:new(options)
       if options.transpose ~= nil then transpose = options.transpose end
       newLayer:copyFromMapMatrix(options.data, transpose)
     end
-  end
 
-  if false then --options.sparse_data then
-    for i, datum in ipairs(options.sparse_data) do
-      newLayer:setLayer(datum.column, datum.row, datum.value)
+    -- Fill in sparse data, if it's supplied.
+    if options.sparse_data then
+      for i, datum in ipairs(options.sparse_data) do
+        newLayer:setLayer(datum.column, datum.row, datum.value)
+      end
     end
   end
 

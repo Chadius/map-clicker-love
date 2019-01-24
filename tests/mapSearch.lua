@@ -18,13 +18,14 @@ local test_search = nil
 
 function setup()
   -- Test Map is a 3x3 grid
-  testMap = MapClass:new{}
-  local mapTile = {
-    {1,1,1},
-     {1,1,1},
-    {1,1,1}
-  }
-  testMap.mapTile:copyFromMapMatrix(mapTile)
+  testMap = MapClass:new()
+  testMap.mapTile=MapLayer:new({
+    data={
+      {1,1,1},
+       {1,1,1},
+      {1,1,1}
+    }
+  })
   testSearch = MapSearch:new(testMap)
 end
 
@@ -75,7 +76,7 @@ function skip_test_bad_params()
   assert_equal(testSearch.search_errors, "function table is missing should_add_to_search")
 end
 
-function btest_no_movement()
+function test_no_movement()
   -- Start searching in the middle of the map.
   -- Stop after 1 iteration.
   -- Results should have 1 item, the start point.
@@ -126,7 +127,7 @@ function add_neighbors_adjacent_to_origin(mapSearch, coord)
   return (adjacentToOrigin == true)
 end
 
-function btest_check_for_neighbors()
+function test_check_for_neighbors()
   -- Start searching in a corner of the map.
   -- Add neighbors on the map, maximum cost is 1.
   -- Results should have 3 items.
@@ -159,7 +160,7 @@ function btest_check_for_neighbors()
   assert_map_locations_list_found(expected_locations, all_visited, "test_check_for_neighbors list")
 end
 
-function btest_map_paths_empty()
+function test_map_paths_empty()
   -- [[ Initialize an empty MapPath
   -- ]]
   local path = MapPath:new()
@@ -172,7 +173,7 @@ function btest_map_paths_empty()
   assert_false(path:empty())
 end
 
-function btest_add_step_to_map_path()
+function test_add_step_to_map_path()
   -- [[ Add Step to path
   -- Add multiple steps to path
   -- ]]
@@ -193,7 +194,7 @@ function btest_add_step_to_map_path()
   assert_equal(path:totalCost(), 6)
 end
 
-function btest_clone_map_path()
+function test_clone_map_path()
   --[[ Clone path
     Add step to cloned path, not original
   --]]
@@ -219,7 +220,7 @@ function btest_clone_map_path()
   assert_equal(newPath:totalCost(), 11)
 end
 
-function btest_map_layer_from_search()
+function test_map_layer_from_search()
   --[[Test that you can make a layer from a completed search.
   --]]
 
@@ -256,7 +257,7 @@ function btest_map_layer_from_search()
   local actual_layers_list = layers:getLayeredList()
   assert_map_locations_list_found(expected_locations, actual_layers_list, "test_map_layer_from_search 257")
 end
-function btest_map_set_dimension_and_layer()
+function test_map_set_dimension_and_layer()
   --[[ MapLayers can change their dimensions and can have layers.
   ]]
 
@@ -380,4 +381,22 @@ function test_create_map_layer()
 
   assert_equal(false, layer:getLayer(1, 4))
   assert_equal(false, layer:getLayer(2, 4))
+
+  local layer = MapLayer:new(
+    {
+      columns=5,
+      rows=2,
+      sparse_data={
+        {column=1, row=1, value="A"},
+        {column=3, row=1, value="C"},
+        {column=4, row=2, value="D"},
+      }
+    }
+  )
+  assert_equal(5, layer:columns())
+  assert_equal(2, layer:rows())
+  assert_equal("A", layer:getLayer(1, 1))
+  assert_equal("C", layer:getLayer(3, 1))
+  assert_equal(false, layer:getLayer(3, 2))
+  assert_equal("D", layer:getLayer(4, 2))
 end
