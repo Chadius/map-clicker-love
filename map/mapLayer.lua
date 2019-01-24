@@ -1,17 +1,108 @@
 --[[ Map information, stored by column and row.
 --]]
 
+local function transposeMatrix(matrix)
+  --[[ Transpose the given matrix, so (i,j) maps to (j,i).
+
+  Args:
+    matrix: A nested list of lists. Each inner list should have the same length as the first one.
+
+  Returns:
+    A table with transposed values.
+  ]]
+
+  -- Get the dimensions of the source.
+  local source_rows = #matrix
+  local source_columns = #matrix[1]
+
+  transposed_matrix = {}
+
+  for i=1, source_columns do
+    transposed_matrix[i] = {}
+    for j=1, source_rows do
+      transposed_matrix[i][j] = matrix[j][i]
+    end
+  end
+
+  return transposed_matrix
+end
+
 local MapLayer = {}
 MapLayer.__index = MapLayer
 
-function MapLayer:new()
-  --[[ Create a new path.
+function MapLayer:new(options)
+  --[[Constructor.
+
+  Args:
+    options(optional, default{}): Use this to set up and fill the values.
+
+      You can specify the data, using a table.
+        data(table, optional)                       : Nested list, assuming data[row][column]. We will transpose this to fit our internal structure (see transpose option.)
+        transpose(boolean, optional, default=true)  : If data follows data[column][row], set this flag to false.
+
+      You can also set the dimensions and a fill value.
+        columns(number, optional)             : see setDimensions(). rows is required.
+        rows(number, optional)                : see setDimensions(). columns is required.
+        defaultValue(optional, default=false) : see setDimensions().
+
+      You can set individual data points as well.
+        sparse_data(optional): A list of tables. Each table needs these keys:
+          column
+          row
+          value
   --]]
   local newLayer = {}
   setmetatable(newLayer,MapLayer)
 
-  -- A 2D matrix. If [column][map] is not nil, then that location was layered.
+  --[[Internal storage. A nested list of lists.
+    It's designed so infoByLocation[column][row] works.
+    As a result, the outer list is by column, and the inner lists have 1 value for each row.
+  ]]
   newLayer.infoByLocation = {}
+
+  if options then
+    local columns = nil
+    local rows = nil
+    local defaultValue = false
+
+    if options.data ~= nil then
+      if options.transpose == nil or options.transpose then
+        columns = #options.data[1]
+        rows = #options.data
+      else
+        columns = #options.data
+        rows = #options.data[1]
+      end
+    end
+
+    if options.columns ~= nil and options.rows ~= nil then
+      columns = options.columns
+      rows = options.rows
+      if options.defaultValue ~= nil then
+        defaultValue = options.defaultValue
+      end
+    end
+
+    if columns ~= nil and rows ~= nil then
+      local data_source = options.data
+      if options.transpose == nil or options.transpose then
+        if data_source then
+          data_source = transposeMatrix(options.data)
+        end
+      end
+      newLayer:setDimensions(columns, rows, defaultValue, data_source)
+    elseif options.data ~= nil then
+      local transpose = true
+      if options.transpose ~= nil then transpose = options.transpose end
+      newLayer:copyFromMapMatrix(options.data, transpose)
+    end
+  end
+
+  if false then --options.sparse_data then
+    for i, datum in ipairs(options.sparse_data) do
+      newLayer:setLayer(datum.column, datum.row, datum.value)
+    end
+  end
 
   return newLayer
 end
@@ -42,19 +133,23 @@ local function copyMatrix(source)
 
   return dest
 end
-function MapLayer:copyFromMapMatrix(source)
+function MapLayer:copyFromMapMatrix(source, transpose)
   --[[ Copy values from the given 2D matrix.
   Args:
-    source: Nested table. The first level has the columns and the child is a
-      table with the rows. If child value is not nil, then the location is
-      layered.
+    source: Nested list of lists. source[column][row] should refer to the intended value.
+    transpose: If true, source is organized by source[row][column] and we'll transpose it.
 
   Returns:
     true if successful, false otherwise.
   --]]
 
+  local new_source = source
+  if transpose == true then
+    new_source = transposeMatrix(source)
+  end
+
   -- Copy the source into a new table.
-  self.infoByLocation = copyMatrix(source)
+  self.infoByLocation = copyMatrix(new_source)
 end
 function MapLayer:getLayeredMap()
   --[[ Returns a 2D Nested Table with [column][row] locations.
@@ -162,12 +257,13 @@ function MapLayer:setLayer(column, row, value)
   self.infoByLocation[column][row] = value
   return true
 end
-local function fillMatrixWithValue(matrix, value)
+local function fillMatrixWithValue(matrix, value, data)
   --[[ Fill all values of the 2D nested table.
   Args:
     matrix: A 2D Nested table (will be modified). The first level has the
       columns and the child is a table with the rows.
     value: The value to set each entry to.
+    data(optional): See setDimensions().
 
   Returns:
     true if successful.
@@ -177,11 +273,14 @@ local function fillMatrixWithValue(matrix, value)
   for i, column in ipairs(matrix) do
     -- Iterate from each row
     for j, row in ipairs(matrix[i]) do
+
+      -- If a data table was provided, copy from there.
+      local fill_value = value
+      if data and data[i] and data[i][j] ~= nil then fill_value = data[i][j] end
       -- Set the value.
-      matrix[i][j] = value
+      matrix[i][j] = fill_value
     end
   end
-
   return true
 end
 function MapLayer:clear(newValue)
@@ -194,15 +293,16 @@ function MapLayer:clear(newValue)
   ]]
   return fillMatrixWithValue(self.infoByLocation, newValue)
 end
-function MapLayer:setDimensions(columns, rows, defaultValue)
+function MapLayer:setDimensions(columns, rows, defaultValue, data)
   --[[ Resizes the map layer.
   If more columns and rows are added, fill the defaultValue for new locations.
   If there are fewer columns or rows, the highest number columns/rows are truncated.
 
   Args:
-    columns(number)           : Columns in the new map.
-    rows(number)              :
-    defaultValue(default=false) : Sets all of the values for new columns and rows.
+    columns(number)                       : Columns in the new map.
+    rows(number)                          :
+    defaultValue(optional, default=false) : Sets all of the values for new columns and rows.
+    data(optional, default={})            : A list of lists that stores values in data[column][row]. Copy these values where they can be found.
 
   Returns:
     true upon success, false otherwise.
@@ -213,14 +313,14 @@ function MapLayer:setDimensions(columns, rows, defaultValue)
   end
 
   -- Make new map matrix of new size
-  local layers = {}
+  local layerData = {}
 
   -- Iterate from each column
   for i=1, columns do
-    layers[i] = {}
-    -- Iterate from each row
+    layerData[i] = {}
+    -- Iterate from each column
     for j=1, rows do
-      layers[i][j] = false
+      layerData[i][j] = false
     end
   end
 
@@ -230,14 +330,29 @@ function MapLayer:setDimensions(columns, rows, defaultValue)
   end
 
   -- Fill the map with defaultValue
-  fillMatrixWithValue(layers, fillValue)
+  fillMatrixWithValue(layerData, fillValue, data)
 
   -- Copy the current layers into the new matrix.
-  copyMatrix(self.infoByLocation, layers)
+  --
+  copyMatrix(self.infoByLocation, layerData)
 
   -- Set the matrix to the new one.
-  self.infoByLocation = layers
+  self.infoByLocation = layerData
   return true
+end
+function MapLayer:getDimensions()
+  if self.infoByLocation == nil then return {columns=0,rows=0} end
+  if self.infoByLocation == {} then return {columns=0,rows=0} end
+  return {
+    columns = #self.infoByLocation,
+    rows = #self.infoByLocation[1]
+  }
+end
+function MapLayer:columns()
+  return self:getDimensions().columns
+end
+function MapLayer:rows()
+  return self:getDimensions().rows
 end
 function MapLayer:printMe()
   local columns = #self.infoByLocation

@@ -19,12 +19,12 @@ local test_search = nil
 function setup()
   -- Test Map is a 3x3 grid
   testMap = MapClass:new{}
-  testMap.mapTile = {
+  local mapTile = {
     {1,1,1},
      {1,1,1},
     {1,1,1}
   }
-
+  testMap.mapTile:copyFromMapMatrix(mapTile)
   testSearch = MapSearch:new(testMap)
 end
 
@@ -75,7 +75,7 @@ function skip_test_bad_params()
   assert_equal(testSearch.search_errors, "function table is missing should_add_to_search")
 end
 
-function test_no_movement()
+function btest_no_movement()
   -- Start searching in the middle of the map.
   -- Stop after 1 iteration.
   -- Results should have 1 item, the start point.
@@ -126,7 +126,7 @@ function add_neighbors_adjacent_to_origin(mapSearch, coord)
   return (adjacentToOrigin == true)
 end
 
-function test_check_for_neighbors()
+function btest_check_for_neighbors()
   -- Start searching in a corner of the map.
   -- Add neighbors on the map, maximum cost is 1.
   -- Results should have 3 items.
@@ -159,7 +159,7 @@ function test_check_for_neighbors()
   assert_map_locations_list_found(expected_locations, all_visited, "test_check_for_neighbors list")
 end
 
-function test_map_paths_empty()
+function btest_map_paths_empty()
   -- [[ Initialize an empty MapPath
   -- ]]
   local path = MapPath:new()
@@ -172,7 +172,7 @@ function test_map_paths_empty()
   assert_false(path:empty())
 end
 
-function test_add_step_to_map_path()
+function btest_add_step_to_map_path()
   -- [[ Add Step to path
   -- Add multiple steps to path
   -- ]]
@@ -193,7 +193,7 @@ function test_add_step_to_map_path()
   assert_equal(path:totalCost(), 6)
 end
 
-function test_clone_map_path()
+function btest_clone_map_path()
   --[[ Clone path
     Add step to cloned path, not original
   --]]
@@ -219,7 +219,7 @@ function test_clone_map_path()
   assert_equal(newPath:totalCost(), 11)
 end
 
-function test_map_layer_from_search()
+function btest_map_layer_from_search()
   --[[Test that you can make a layer from a completed search.
   --]]
 
@@ -256,7 +256,7 @@ function test_map_layer_from_search()
   local actual_layers_list = layers:getLayeredList()
   assert_map_locations_list_found(expected_locations, actual_layers_list, "test_map_layer_from_search 257")
 end
-function test_map_set_dimension_and_layer()
+function btest_map_set_dimension_and_layer()
   --[[ MapLayers can change their dimensions and can have layers.
   ]]
 
@@ -265,10 +265,10 @@ function test_map_set_dimension_and_layer()
   layer:setDimensions(3, 2)
 
   -- Make sure you can't get offmap information.
-  assert_equal(layer:getLayer(0, 1), nil)
-  assert_equal(layer:getLayer(4, 1), nil)
-  assert_equal(layer:getLayer(1, 0), nil)
-  assert_equal(layer:getLayer(1, 3), nil)
+  assert_equal(nil, layer:getLayer(0, 1))
+  assert_equal(nil, layer:getLayer(4, 1))
+  assert_equal(nil, layer:getLayer(1, 0))
+  assert_equal(nil, layer:getLayer(1, 3))
 
   -- Layer (1,2) and confirm it succeeded.
   assert_true(layer:setLayer(1, 2, 1))
@@ -300,4 +300,84 @@ function test_map_set_dimension_and_layer()
   assert_true(layer:clear("candy"))
   assert_equal(layer:getLayer(1, 1), "candy")
   assert_equal(layer:getLayer(2, 1), "candy")
+end
+function test_create_map_layer()
+  -- Specify the columns and rows in the table.
+
+  local layer = MapLayer:new({columns=5,rows=2})
+  assert_equal(5, layer:columns())
+  assert_equal(2, layer:rows())
+  assert_equal(false, layer:getLayer(3, 2))
+
+  -- Change the default value
+  layer = MapLayer:new({columns=5,rows=2,defaultValue="A"})
+  assert_equal(5, layer:columns())
+  assert_equal(2, layer:rows())
+  assert_equal("A", layer:getLayer(3, 2))
+
+  -- Specify only data
+  local layer = MapLayer:new({
+    data={
+      {1,"B"},
+       {3,4},
+      {5,6}
+    }
+  })
+  assert_equal(2, layer:columns())
+  assert_equal(3, layer:rows())
+
+  assert_equal(1, layer:getLayer(1, 1))
+  assert_equal("B", layer:getLayer(2, 1))
+
+  assert_equal(3, layer:getLayer(1, 2))
+  assert_equal(4, layer:getLayer(2, 2))
+
+  assert_equal(5, layer:getLayer(1, 3))
+  assert_equal(6, layer:getLayer(2, 3))
+
+  -- Specify only data and transpose
+  -- I transposed the input data so the MapLayer should be exactly the same.
+  local layer = MapLayer:new({
+    transpose = false,
+    data={
+      {1,3,5},
+      {"B",4,6}
+    }
+  })
+  assert_equal(2, layer:columns())
+  assert_equal(3, layer:rows())
+
+  assert_equal(1, layer:getLayer(1, 1))
+  assert_equal("B", layer:getLayer(2, 1))
+
+  assert_equal(3, layer:getLayer(1, 2))
+  assert_equal(4, layer:getLayer(2, 2))
+
+  assert_equal(5, layer:getLayer(1, 3))
+  assert_equal(6, layer:getLayer(2, 3))
+
+  -- Specify data and dimensions
+  local layer = MapLayer:new({
+    columns=2,
+    rows=4,
+    data={
+      {1,"B"},
+       {3,4},
+      {5,6}
+    }
+  })
+  assert_equal(2, layer:columns())
+  assert_equal(4, layer:rows())
+
+  assert_equal(1, layer:getLayer(1, 1))
+  assert_equal("B", layer:getLayer(2, 1))
+
+  assert_equal(3, layer:getLayer(1, 2))
+  assert_equal(4, layer:getLayer(2, 2))
+
+  assert_equal(5, layer:getLayer(1, 3))
+  assert_equal(6, layer:getLayer(2, 3))
+
+  assert_equal(false, layer:getLayer(1, 4))
+  assert_equal(false, layer:getLayer(2, 4))
 end

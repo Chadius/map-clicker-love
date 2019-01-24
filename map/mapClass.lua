@@ -1,5 +1,6 @@
 local MapSearch = require "map/mapSearch"
 local TerrainType = require("map/terrainType")
+local MapLayer = require "map/mapLayer"
 
 local function readFile(file)
   local f = assert(io.open(file, "rb"))
@@ -16,7 +17,7 @@ function MapClass:new()
   --]]
   local newMap = {}
   setmetatable(newMap,MapClass)
-  newMap.mapTile={}
+  newMap.mapTile=MapLayer:new()
 
   -- Store the terrain costs. This should have the same dimensions as mapTile.
   newMap.moveTile={}
@@ -37,7 +38,7 @@ function MapClass:load()
   local width = #(mapJson.graphics.movement[1])
 
   -- Prepare the map.
-  self.mapTile = {}
+  local rawMapTiles = {}
 
   local rowIndex,columnIndex = 1,1
 
@@ -55,11 +56,14 @@ function MapClass:load()
     end
 
     -- Add the row.
-    self.mapTile[rowIndex] = newRow
+    mapTiles[rowIndex] = newRow
 
     -- Increment the row counter
     rowIndex = rowIndex + 1
   end
+
+  -- Copy the loaded map into the tiles.
+  self.mapTile.copyFromMapMatrix(rawMapTiles)
 
   return self
 end
@@ -71,8 +75,8 @@ function MapClass:draw()
 end
 function MapClass:getTileClickedOn(x, y)
   return self.drawing:getTileClickedOn(x, y,
-    #(self.mapTile[1]), -- width
-    #self.mapTile -- height
+    self.mapTile:columns(),
+    self.mapTile:rows()
   )
 end
 function MapClass:getDimensions()
@@ -83,8 +87,7 @@ function MapClass:getDimensions()
   Returns:
     Two numbers. One is the number of columns, the other is the number of rows.
   ]]
-
-  return #(self.mapTile[1]), #self.mapTile
+  return self.mapTile:columns(), self.mapTile:rows()
 end
 function MapClass:searchMap(functions, origin)
   -- origin must contain a row and column
@@ -94,8 +97,8 @@ end
 function MapClass:isOnMap(coordinate)
   -- Returns true if the coordinate is on the map.
 
-  local mapWidth = #(self.mapTile[1])
-  local mapHeight = #self.mapTile
+  local mapWidth = self.mapTile:columns()
+  local mapHeight = self.mapTile:rows()
 
   if coordinate["column"] < 1 or coordinate["row"] < 1 then
     return false

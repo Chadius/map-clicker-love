@@ -90,7 +90,7 @@ local testUnit = nil
 function setup()
   -- Test Map is a 3x3 grid
   testMap = MapClass:new{}
-  testMap.mapTile = {
+  local rawMapTile = {
     {1,1,1,1,1},
      {1,1,1,1,1},
     {1,1,1,1,1},
@@ -107,6 +107,8 @@ function setup()
     {1,1,1,1,1},
      {1,1,1,1,1},
   }
+  testMap.mapTile:copyFromMapMatrix(rawMapTile)
+
   testMap.moveTile = {
     {1,2,1,1,1},
      {3,1,4,1,1},
