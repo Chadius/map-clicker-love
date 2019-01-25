@@ -59,31 +59,6 @@ MoveType class
 TODO
 
 TODO: Add MoveType to MapUnits
-
-Unit Tests!
-5x5 map
-  | 1     | 2      | 3      | 4      | 5      |
------------------------------------------------
-1 |       | Mud    |        |        |        |
-2 | Grass |        |        |        |        |
-3 |       |        |        |        |        |
-4 |       |        | Wall   |        | Pit    |
-5 |       |        | Wall   |        |        |
-
-Test 0 movement
-Unit starts at (3,2)
-Move distance is 0
-GetTilesWithinMovement returns a table with only 1 element, (3,2)
-ChartCourse to (3,1), returns a path with 2 items, (3,2) to (3,1)
-NextWaypoint returns nil because you lack movement to get there
-
-Test 1 movement
-Unit starts at (1,3)
-Move distance is 1
-Move type is on foot
-GetTilesWithinMovement returns a table with elements, (1,3) (2,3) (1, 4)
-ChartCourse to (1,1), returns nil because you lack movement.
-NextWaypoint returns nil because you passed it nil.
 ]]
 
 local testMap = nil

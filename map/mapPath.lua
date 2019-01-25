@@ -20,19 +20,28 @@ function MapPath:empty()
   end
   return false
 end
-function MapPath:addStep(column, row, moveCost)
+function MapPath:addStep(column, row, moveCost, estimatedCost)
   --[[ Adds the next step to this path.
+  Args:
+    column(number)        : Where to start the estimate.
+    row(number)           :
+    moveCost(number)      : The cost required to move to the location at (column, row).
+    estimatedCost(number, optional, default=0) : An estimated remaining cost to the destination.
+
+  Returns:
+    None
   --]]
 
   -- Get the total movement cost of this path.
   local totalCost = self:totalCost()
+  local estimatedCost = estimatedCost or 0
 
   -- Create a new Step, using the column, row, individual move cost and the new cost.
   local newStep = {
     column=column,
     row=row,
     cost=moveCost,
-    totalCost=totalCost+moveCost
+    totalCost=totalCost+moveCost+estimatedCost
   }
 
   -- Add to the steps.

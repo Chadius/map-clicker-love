@@ -132,6 +132,44 @@ function MapSearch:new(map)
   return newSearch
 end
 
+function MapSearch:getEstimatedCost(column, row, destination)
+  --[[ Returns the estimated distance to the destination, assuming there are no obstacles and each space costs 1.
+
+  Args:
+    column(number)    : Where to start the estimate.
+    row(number)       :
+    destination(table): If there is no destination, the estimate is 0.
+
+  Returns:
+    A number.
+  ]]
+
+  -- If no destination is given, estimated cost is 0.
+  if destination == nil then
+    return 0
+  end
+
+  -- Calculate the horizontal and vertical distance to the destination.
+  local horizontal_distance = column - destination.column
+  local vertical_distance = row - destination.row
+  local total_distance = horizontal_distance + vertical_distance
+
+  -- Because this is a hex grid, you can use the diagonals depending on your row and direction to the destination.
+  if vertical_distance ~= 0 then
+
+    -- If you start on an even row and the destination is on the right, then you can save 1 step by moving diagonally to the right.
+    if horizontal_distance < 0 and row % 2 == 0 then
+      total_distance = total_distance - 1
+    end
+
+    -- If you start on an odd row and the destination is on the left, then you can save 1 step by moving diagonally to the left.
+    if horizontal_distance > 0 and row % 2 == 1 then
+      total_distance = total_distance - 1
+    end
+  end
+  return total_distance
+end
+
 --[[
   Starting from the origin, this performs an A* search.
 
@@ -241,7 +279,8 @@ function MapSearch:searchMap(functions, origin, destination, context)
           table.insert(neighbors, {
             column=coordColumn,
             row=coordRow,
-            cost=1 -- TODO have to extract cost to the next tile
+            cost=1, -- TODO have to extract cost to the next tile
+            estimated=self:getEstimatedCost(coordColumn, coordRow, destination)
           })
         end
       end
@@ -315,9 +354,10 @@ function MapSearch:addNewPathsWithNeighbors(neighbors)
 
     -- Add this new neighbor but with the neighbor's cost
     newPath:addStep(
-      neighbor["column"],
-      neighbor["row"],
-      neighbor["cost"]
+      neighbor.column,
+      neighbor.row,
+      neighbor.cost,
+      neighbor.estimated
     )
 
     -- Add this to the paths
