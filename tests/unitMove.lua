@@ -112,23 +112,25 @@ function setup()
     }
   })
 
-  testMap.moveTile = {
-    {1,2,1,1,1},
-     {3,1,4,1,1},
-    {1,1,1,1,1},
+  testMap.moveTile = MapLayer:new({
+    data={
+      {1,2,1,1,1},
+       {3,1,4,1,1},
+      {1,1,1,1,1},
 
-     {1,1,4,1,5},
-    {1,1,4,1,1},
-     {4,4,4,4,4},
+       {1,1,4,1,5},
+      {1,1,4,1,1},
+       {4,4,4,4,4},
 
-    {1,1,1,1,1},
-     {1,1,1,1,1},
-    {1,1,1,1,1},
+      {1,1,1,1,1},
+       {1,1,1,1,1},
+      {1,1,1,1,1},
 
-     {1,1,1,1,1},
-    {4,4,4,4,4},
-     {1,5,1,5,1},
-  }
+       {1,1,1,1,1},
+      {4,4,4,4,4},
+       {1,5,1,5,1},
+    }
+  })
 
   -- Test Unit
   testUnit = MapUnit:new()
@@ -335,7 +337,7 @@ function test_unit_with_1_move_fly()
   assert_not_equal(nil, course)
 
   for i, step in iterateMapPathSteps(course) do
-    assert_true(TerrainType.id[testMap.moveTile[step.row][step.column]].canStopOn)
+    assert_true(TerrainType.id[testMap.moveTile:get(step.column, step.row)].canStopOn)
   end
 end
 

@@ -238,6 +238,9 @@ function MapLayer:getLayer(column, row)
   -- Get the value.
   return self.infoByLocation[column][row]
 end
+function MapLayer:get(column, row)
+  return self:getLayer(column, row)
+end
 function MapLayer:setLayer(column, row, value)
   --[[ Change whether the location at (column, row) is layered.
   Args:
@@ -257,6 +260,9 @@ function MapLayer:setLayer(column, row, value)
   -- Set the value.
   self.infoByLocation[column][row] = value
   return true
+end
+function MapLayer:set(column, row, value)
+  return self:setLayer(column, row, value)
 end
 local function fillMatrixWithValue(matrix, value, data)
   --[[ Fill all values of the 2D nested table.

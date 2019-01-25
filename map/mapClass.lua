@@ -18,9 +18,9 @@ function MapClass:new()
   local newMap = {}
   setmetatable(newMap,MapClass)
   newMap.mapTile=MapLayer:new()
-
   -- Store the terrain costs. This should have the same dimensions as mapTile.
-  newMap.moveTile={}
+  newMap.moveTile=MapLayer:new()
+
   newMap.drawing=nil
   newMap.search=MapSearch:new(newMap)
   return newMap
@@ -119,7 +119,7 @@ function MapClass:getTileTerrain(coordinate)
   local column = coordinate["column"]
   local row = coordinate["row"]
 
-  local type = TerrainType.id[self.moveTile[row][column]]
+  local type = TerrainType.id[self.moveTile:get(column, row)]
   return type
 end
 
