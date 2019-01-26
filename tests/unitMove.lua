@@ -184,7 +184,7 @@ function test_adjacent_tiles()
   testUnit.movement=UnitMove:new(
     testMap,
     1,
-    "foot"
+    "walk"
   )
 
   -- Place it on an odd numbered row.
@@ -231,7 +231,7 @@ function test_unit_has_no_move()
   testUnit.movement=UnitMove:new(
     testMap,
     0,
-    "foot"
+    "walk"
   )
 
   -- Unit can only access its spawn point.
@@ -357,7 +357,7 @@ function test_unit_with_1_move_foot()
   testUnit.movement=UnitMove:new(
     testMap,
     1,
-    "foot"
+    "walk"
   )
 
   -- [[ Unit can access adjacent spaces next turn.

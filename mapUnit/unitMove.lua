@@ -1,4 +1,5 @@
 local TerrainType = require("map/terrainType")
+local MoveType = require("mapUnit/moveType")
 
 -- [[ This class handles a unit's movement. This includes:
 --- Type of movement
@@ -16,14 +17,14 @@ local function get_move_cost_by_terrain(unitMove, terrainType)
     return nil
   end
 
-  -- If the unit can fly the cost is 1.
-  if unitMove.moveType == "fly" then
-    return 1
+  -- See if the unit can cross pits.
+  if unitMove.moveType.canCrossPits ~= true and terrainType.canStopOn == false then
+    return nil
   end
 
-  -- On foot units cannot cross pits.
-  if terrainType.canStopOn == false then
-    return nil
+  -- Check for minimum movement cost.
+  if unitMove.moveType.minimumMoveCost then
+    return 1
   end
 
   -- Return the move cost.
@@ -77,8 +78,7 @@ local function should_add_to_search_if_can_be_crossed(mapSearch, next_step, dest
   end
 
   -- On foot units cannot cross pits.
-  local canFlyOverPits = self.moveType == "fly"
-  if terrainType.canStopOn == false and canFlyOverPits ~= true then
+  if terrainType.canStopOn == false and self.moveType.canCrossPits ~= true then
     return false
   end
 
@@ -97,12 +97,14 @@ end
 local UnitMove={}
 UnitMove.__index = UnitMove
 
-function UnitMove:new(...)
+function UnitMove:new(map, distance, type)
   --[[ Create a new path.
   --]]
   local newMove = {}
   setmetatable(newMove,UnitMove)
-  newMove.map, newMove.moveDistance, newMove.moveType = ...
+  newMove.map = map
+  newMove.moveDistance = distance or 0
+  newMove.moveType = MoveType.description[type]
   return newMove
 end
 
