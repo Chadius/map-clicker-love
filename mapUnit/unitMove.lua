@@ -31,6 +31,17 @@ local function get_move_cost_by_terrain(unitMove, terrainType)
   return terrainType.movementCost
 end
 
+local function getMovementCost(mapSearch, column, row, destination, context)
+  --[[ Returns the total movement cost for the unit to move onto the tile at the given location.
+    See MapSearch.getMovementCost()
+  ]]
+  local self = context.unitMove
+
+  local terrainType = self.map:getTileTerrain({column=column,row=row})
+  local moveCost = get_move_cost_by_terrain(self, terrainType)
+  return moveCost
+end
+
 local function should_add_to_search_if_within_unit_movement(mapSearch, next_step, destination, context)
   -- Return true if the point would not exceed the cost.
 
@@ -40,7 +51,6 @@ local function should_add_to_search_if_within_unit_movement(mapSearch, next_step
   local coordRow = next_step["row"]
   local current_cost = next_step["cost"]
 
-  -- If this neighbor is in a wall, return false
   local terrainType = self.map:getTileTerrain(next_step)
 
   -- You cannot cross walls.
@@ -138,7 +148,8 @@ function UnitMove:chartCourse(mapUnit, destination)
 
   -- Begin a search. Track all of the visited locations the unit can reach with its movement.
   local functions = {
-    should_add_to_search=should_add_to_search_if_can_be_crossed
+    should_add_to_search=should_add_to_search_if_can_be_crossed,
+    get_movement_cost=getMovementCost
   }
 
   search:searchMap(
@@ -253,4 +264,5 @@ function UnitMove:getTilesWithinMovement(mapUnit, args)
   -- Return all of the visited locations.
   return search.visited
 end
+
 return UnitMove

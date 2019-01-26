@@ -80,6 +80,24 @@ local function getRawNeighbors(self, centralCoordinate, destination, context)
   return neighbors
 end
 
+local function getMovementCost(self, column, row, destination, context)
+  --[[Returns the movement cost required to move onto the given tile.
+
+  Args:
+    self              : MapSearch object
+    column(number)    : Where to start the estimate.
+    row(number)       :
+    destination(table): If there is no destination, the estimate is 0.
+    context(optional) : Extra information that can be passed to custom functions.
+
+  Returns:
+    A number.
+  ]]
+
+  -- By default we just pass 1.
+  return 1
+end
+
 local function shouldAddToSearch(self, step, destination, context)
   -- Returns true if this coord should be added to the search.
   local map = self.map
@@ -218,6 +236,7 @@ function MapSearch:searchMap(functions, origin, destination, context)
   functions["get_raw_neighbors"] = functions["get_raw_neighbors"] or getRawNeighbors
   functions["basic_should_add_to_search"] = functions["basic_should_add_to_search"] or shouldAddToSearch
   functions["should_stop"] = functions["should_stop"] or stop_when_empty
+  functions["get_movement_cost"] = functions["get_movement_cost"] or getMovementCost
 
   self.origin = origin
   self.top = nil
@@ -279,7 +298,7 @@ function MapSearch:searchMap(functions, origin, destination, context)
           table.insert(neighbors, {
             column=coordColumn,
             row=coordRow,
-            cost=1, -- TODO have to extract cost to the next tile
+            cost=functions["get_movement_cost"](self, coordColumn, coordRow, destination, context),
             estimated=self:getEstimatedCost(coordColumn, coordRow, destination)
           })
         end
