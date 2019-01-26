@@ -109,22 +109,28 @@ function UnitMove:new(map, distance, type)
 end
 
 function UnitMove:chartCourse(mapUnit, destination)
-  -- Return a single path to the destination, assuming inifinite turns.
-  -- Returns nil if the trip is impossible.
+  --[[Assuming infinite turns, the mapUnit tries to reach the destination.
+  Args:
+    mapUnit           : The travelling MapUnit object.
+    destination(table): A table with a column and row key, noting the destination.
+
+  Returns:
+    A MapPath object that ends at the destination (or nil if it's impossible)
+    A MapLayer object resulting from the search attempt (or nil if there was no search attempt)
+    A string noting the status.
+  ]]
 
   if destination.column == nil then
-    print("destination doesn't have a column key")
-    return nil
+    return nil, nil, "Destination doesn't have a column key"
   end
   if destination.row == nil then
-    print("destination doesn't have a row key")
-    return nil
+    return nil, nil, "Destination doesn't have a row key"
   end
 
   -- If you can't stop on the destination on the map, the trip is impossible.
   local terrainType = self.map:getTileTerrain({column=destination.column,row=destination.row})
   if terrainType.canStopOn == false then
-    return nil
+    return nil, nil, "Cannot stop on the terrain"
   end
 
   -- Start a new MapSearch.
@@ -147,7 +153,7 @@ function UnitMove:chartCourse(mapUnit, destination)
 
   -- If no top path exists, return nil
   if search.top == nil then
-    return nil
+    return nil, search.visited, "Destination cannot be reached"
   end
 
   local topPath = search.top
@@ -155,11 +161,11 @@ function UnitMove:chartCourse(mapUnit, destination)
 
   -- If the topPath refers to the destination, return it
   if step.column == destination.column and step.row == destination.row then
-    return search.top
+    return search.top, search.visited, "Destination reached"
   end
 
   -- The path is not possible.
-  return nil
+  return nil, nil, "Destination cannot be reached"
 end
 
 function UnitMove:canStopOnSpace(step)

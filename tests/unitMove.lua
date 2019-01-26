@@ -244,16 +244,18 @@ function test_unit_has_no_move()
   assert_map_locations_list_found(expected_locations, nearby_tiles:getLayeredList({skipValue=false}), "test_unit_has_no_move list")
 
   -- Unit can't chart courses because it can't move there.
-  local course = testUnit:chartCourse({column=2,row=2})
+  local course, visited, status = testUnit:chartCourse({column=2,row=2})
   assert_equal(nil, course)
+  assert_equal("Destination cannot be reached", status)
 
   -- Unit cannot get a waypoint because you cannot move.
   local next_waypoint = testUnit:nextWaypoint(course)
   assert_equal(nil, next_waypoint)
 
   -- You can chart a course to the starting point.
-  local course = testUnit:chartCourse({column=2,row=3})
+  local course, visited, status = testUnit:chartCourse({column=2,row=3})
   assert_not_equal(nil, course)
+  assert_equal("Destination reached", status)
 
   -- You are at the course destination so there are no waypoints.
   next_waypoint = testUnit:nextWaypoint(course)
@@ -288,19 +290,21 @@ function test_unit_with_1_move_fly()
   assert_map_locations_list_found(expected_locations, list_of_tiles:getLayeredList{skipValue=false}, "test_unit_with_1_move_fly 235")
 
   -- Unit can chart courses to anywhere except walls.
-  local course = testUnit:chartCourse({column=1,row=1})
+  local course, visited, status = testUnit:chartCourse({column=1,row=1})
   assert_not_equal(nil, course)
 
   -- Can't chart a course to the wall, no matter how many turns
-  course = testUnit:chartCourse({column=3,row=2})
+  course, visited, status = testUnit:chartCourse({column=3,row=2})
   assert_equal(nil, course)
+  assert_equal("Cannot stop on the terrain", status)
 
   -- Can't chart a course to the pit because you can't stop there
-  course = testUnit:chartCourse({column=5,row=4})
+  course, visited, status = testUnit:chartCourse({column=5,row=4})
   assert_equal(nil, course)
+  assert_equal("Cannot stop on the terrain", status)
 
   -- Chart a course that will take 2 turns to reach. NextWaypoint returns an adjacent tile.
-  course = testUnit:chartCourse({column=4,row=1})
+  course, visited, status = testUnit:chartCourse({column=4,row=1})
   assert_not_equal(nil, course)
 
   local next_waypoint = testUnit:nextWaypoint(course)
@@ -308,7 +312,7 @@ function test_unit_with_1_move_fly()
   assert_equal(1, next_waypoint["row"])
 
   -- Chart a course to the space next to the pit. Because you can't stop on a pit, the course should not include the pit space.
-  course = testUnit:chartCourse({column=4,row=2})
+  course, visited, status = testUnit:chartCourse({column=4,row=2})
   assert_not_equal(nil, course)
 
   for i, step in iterateMapPathSteps(course) do
@@ -378,6 +382,7 @@ function test_unit_with_1_move_foot()
   assert_not_equal(nil, course)
 
   -- Chart course to a location that takes 2 movement to cross, expect nil.
-  local course = testUnit:chartCourse({column=1,row=1})
+  local course, visited, status = testUnit:chartCourse({column=1,row=1})
   assert_equal(nil, course)
+  assert_equal("Destination cannot be reached", status)
 end
