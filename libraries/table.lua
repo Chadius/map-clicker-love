@@ -39,3 +39,13 @@ function printDictionary(table, indents)
     end
   end
 end
+
+function shallowCopyArray(orig)
+  --[[ Returns a shallow copy of the indexed array.
+  ]]
+  local copy = {}
+  for i, val in ipairs(orig) do
+    copy[i] = orig[i]
+  end
+  return copy
+end

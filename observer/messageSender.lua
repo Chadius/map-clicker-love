@@ -1,3 +1,5 @@
+require "libraries/table"
+
 --[[This supports the Observer design pattern.
 When you want to send messages without specifying who observes it.
 
@@ -25,7 +27,7 @@ function MessageSender:addObserver(observerOwner)
   Args:
     observerOwner: observerOwner.observer refers to an Observer object.
   Returns:
-    True upon success.
+    True if the observer was added.
   ]]
   if observerOwner == nil then
     return false
@@ -51,7 +53,6 @@ function MessageSender:removeObserver(observerOwner)
     True upon success.
   ]]
 
---[[
   local index = nil
   for i, obs in ipairs(self.observers) do
     if obs == observerOwner then
@@ -61,7 +62,6 @@ function MessageSender:removeObserver(observerOwner)
 
   table.remove(self.observers, index)
   return true
-  ]]
 end
 
 function MessageSender:notify(message, payload)
@@ -73,8 +73,11 @@ function MessageSender:notify(message, payload)
     True upon success.
   ]]
 
+  -- Duplicate the observer list.
+  local copyObservers = shallowCopyArray(self.observers)
+
   -- For each observer owner
-  for i, obs in ipairs(self.observers) do
+  for i, obs in ipairs(copyObservers) do
     -- Notify the observer.
     obs.observer:onNotify(self, obs, message, payload)
   end
