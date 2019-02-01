@@ -5,7 +5,7 @@ local MapUnit={}
 MapUnit.__index = MapUnit
 
 function MapUnit:new()
-  --[[ Create a new path.
+  --[[ Create a new MapUnit.
   --]]
   local newUnit = {}
   setmetatable(newUnit,MapUnit)
