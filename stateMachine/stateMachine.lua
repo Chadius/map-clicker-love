@@ -24,9 +24,9 @@ function StateMachine:new(args)
   end
 
   -- Copy the states
-  newObj.states = {}
+  newObj.state_to_function = {}
   for key, func in args.states do
-    states[key] = func
+    newObj.state_to_function[key] = func
   end
 
   -- Set the initial state
@@ -38,6 +38,7 @@ function StateMachine:new(args)
   end
 
   newObj.initial_state = args.initial_state
+  newObj.current_state = nil
   newObj:reset_state()
 
   -- TODO See if you should turn on the history.
@@ -52,17 +53,37 @@ function StateMachine:reset_state()
   Returns:
     True if successful
   ]]
-  self.state = self.initial_state
+  self.current_state = self.initial_state
 end
 
 function StateMachine:step(caller, message, payload)
   --[[Based on the given state, call one of the defined functions.
-  TODO
+  Args:
+    caller          : Object the state machine function will affect. Usually the object containing this object.
+    message(string) : A description to send to the caller. Will be recorded in the history.
+    payload(table, optional, default={})  : Data to send to the caller.
+  Returns:
+    An optional string.
   ]]
+
+  -- Get the function to call, based on the given state.
+  local func = self.state_to_function[self.current_state]
+
+  -- TODO Protect against state changes.
+
+  -- Call the function.
+  func(self, caller, message, payload)
+
+  -- TODO Stop protecting state changes.
+
+  -- TODO If there were any pending states, apply them now.
 end
 
---[[Change to the given state.
-]]
+function stateMachine:changeState(new_state)
+  --[[Change to the given state.
+  ]]
+  
+end
 
 --[[ Toggle recording history.
 ]]
