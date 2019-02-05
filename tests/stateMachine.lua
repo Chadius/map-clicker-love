@@ -37,8 +37,18 @@ Parking:
 local function ignition_off_state(self, owner, message, payload)
   --[[
   Ignition Off:
-    "Turn key in ignition" - Goes to Engine Idle
+    "Turn the key" - Goes to Engine Idle
   ]]
+
+  local new_message = ""
+
+  if message == "turn the key" and payload.turn_key == true then
+    self:changeState("engine_idle")
+    new_message = "Turning the car on"
+    owner.key_is_turned = true
+  end
+
+  return true, new_message
 end
 
 local function engine_idle_state(self, owner, message, payload)
@@ -78,23 +88,23 @@ function test_make_machine()
     state_machine = StateMachine:new({
       history=false,
       states={
-        ingnition_off=ignition_off_state,
+        ignition_off=ignition_off_state,
         engine_idle=engine_idle_state,
         driving=driving_state,
         parking=parking_state
       },
-      intiial_state="ignition_off"
+      initial_state="ignition_off"
     })
   }
 
   -- Confirm the initial state is ignition off
-  assert_equal("ignition_off", car.state_machine:get_state())
+  assert_equal("ignition_off", car.state_machine:getState())
 
   -- Tell the car to turn the key
   car.state_machine:step(car, "turn the key", {turn_key=true})
 
   -- Confirm the car is in the Engine Idle state.
-  assert_equal("engine_idle", car.state_machine:get_state())
+  assert_equal("engine_idle", car.state_machine:getState())
 
   -- Assert the state machine manipulated the key.
   assert_true(car.key_is_turned)
@@ -117,4 +127,7 @@ The state machine's history should also have the invalid instruction.
 Modify the state machine so it counts the gear shifts when the state is changed.
 Switch from Driving to Parking.
 The car should have a tally of gear shifts.
+]]
+
+--[[Test against state change protection?
 ]]
