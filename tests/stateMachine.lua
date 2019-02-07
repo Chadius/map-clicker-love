@@ -110,18 +110,82 @@ function test_make_machine()
   assert_true(car.key_is_turned)
 end
 
---[[Create a car with a state machine.
-Try to Drive the car.
-Car should be in Ignition Off state, and not moving.
-]]
+function test_ignore_input_in_wrong_state()
+  --[[Create a car with a state machine.
+  Try to Drive the car.
+  Car should be in Ignition Off state, and not moving.
+  ]]
 
---[[Create a car with a state machine. Turn the history on.
-Turn the key and drive. Turn a few times.
-The car should have detected it moved.
-Throw in one invalid direction.
-The state machine's history should have all of the instructions, in order.
-The state machine's history should also have the invalid instruction.
-]]
+  local car = {
+    key_is_turned = false,
+    state_machine = StateMachine:new({
+      history=false,
+      states={
+        ignition_off=ignition_off_state,
+        engine_idle=engine_idle_state,
+        driving=driving_state,
+        parking=parking_state
+      },
+      initial_state="ignition_off"
+    })
+  }
+
+  -- Tell the car to drive.
+  car.state_machine:step(car, "drive", {hit_the_gas=true})
+
+  -- Confirm the car is still in the ignition off state.
+  assert_equal("ignition_off", car.state_machine:getState())
+end
+
+function test_manage_history()
+  --[[Create a car with a state machine. Turn the history on.
+  Turn the key and drive. Turn a few times.
+  The car should have detected it moved.
+  Throw in one invalid direction.
+  The state machine's history should have all of the instructions, in order.
+  The state machine's history should also have the invalid instruction.
+  ]]
+  local car = {
+    key_is_turned = false,
+    state_machine = StateMachine:new({
+      history=true,
+      states={
+        ignition_off=ignition_off_state,
+        engine_idle=engine_idle_state,
+        driving=driving_state,
+        parking=parking_state
+      },
+      initial_state="ignition_off"
+    })
+  }
+
+  -- Tell the car to turn the key
+  car.state_machine:step(car, "turn the key", {turn_key=true})
+
+  -- Confirm the car is in the Engine Idle state.
+  assert_equal("engine_idle", car.state_machine:getState())
+
+  -- Drive.
+  car.state_machine:step(car, "drive", {hit_the_gas=true})
+  car.state_machine:step(car, "drive", {hit_the_gas=false})
+
+  assert_equal(3, car.odometer)
+
+  car.state_machine:step(car, "turn left")
+
+  assert_equal("west", car.heading)
+
+  car.state_machine:step(car, "turn right")
+
+  assert_equal("north", car.heading)
+
+  car.state_machine:step(car, "bogus", {bogus="yes, it's bogus"})
+
+  -- Get the history.
+  local car_history = car.state_machine:getHistory()
+
+  
+end
 
 --[[Create a car with a state machine.
 Modify the state machine so it counts the gear shifts when the state is changed.

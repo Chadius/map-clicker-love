@@ -80,14 +80,10 @@ function StateMachine:step(caller, message, payload)
   -- Get the function to call, based on the given state.
   local func = self.state_to_function[self.current_state]
 
-  -- TODO Protect against state changes.
-
   -- Call the function.
   local is_success, status = func(self, caller, message, payload)
 
-  -- TODO Stop protecting state changes.
-
-  -- TODO If there were any pending states, apply them now.
+  return is_success, status
 end
 
 function StateMachine:changeState(new_state)
