@@ -57,6 +57,15 @@ local function engine_idle_state(self, owner, message, payload)
     "Shift to Drive" - Goes to Driving
     "Shift to Park" - Goes to Parking
   ]]
+
+  local new_message = ""
+
+  if message == "Shift to Drive" then
+    self:changeState("driving")
+    new_message = "Now driving"
+  end
+
+  return true, new_message
 end
 
 local function driving_state(self, owner, message, payload)
@@ -67,6 +76,42 @@ local function driving_state(self, owner, message, payload)
     "Turn right"
     "Brake" - Goes to Engine Idle
   ]]
+
+  -- If you drive
+  if message == "drive" then
+    -- If you hit the gas, increase the odometer by 2
+    if payload.hit_the_gas then
+      owner.odometer = owner.odometer + 2
+    else
+      -- If you didn't hit the gas, increase the odometer by 1
+      owner.odometer = owner.odometer + 1
+    end
+  elseif message == "turn left" then
+    -- If you turn left, rotate the heading.
+
+    local left_turn_headings = {
+      north = "west",
+      south = "east",
+      east = "norh",
+      west = "south"
+    }
+
+    owner.heading = left_turn_headings[ owner.heading ]
+  elseif message == "turn right" then
+    -- If you turn right, rotate the heading.
+    local right_turn_headings = {
+      north = "east",
+      south = "west",
+      east = "south",
+      west = "north"
+    }
+
+    owner.heading = right_turn_headings[ owner.heading ]
+  else
+    return false, "Unknown command"
+  end
+
+  return true, "vroom vroom"
 end
 
 local function parking_state(self, owner, message, payload)
@@ -85,6 +130,7 @@ function test_make_machine()
 
   local car = {
     key_is_turned = false,
+    odometer = 0,
     state_machine = StateMachine:new({
       history=false,
       states={
@@ -118,6 +164,7 @@ function test_ignore_input_in_wrong_state()
 
   local car = {
     key_is_turned = false,
+    odometer = 0,
     state_machine = StateMachine:new({
       history=false,
       states={
@@ -147,6 +194,8 @@ function test_manage_history()
   ]]
   local car = {
     key_is_turned = false,
+    odometer = 0,
+    heading = "north",
     state_machine = StateMachine:new({
       history=true,
       states={
@@ -166,6 +215,7 @@ function test_manage_history()
   assert_equal("engine_idle", car.state_machine:getState())
 
   -- Drive.
+  car.state_machine:step(car, "Shift to Drive")
   car.state_machine:step(car, "drive", {hit_the_gas=true})
   car.state_machine:step(car, "drive", {hit_the_gas=false})
 
@@ -184,14 +234,35 @@ function test_manage_history()
   -- Get the history.
   local car_history = car.state_machine:getHistory()
 
-  
+  -- Check the number of events in the history
+  assert_equal(7, #car_history)
+
+  -- Spot check a couple of commands
+  assert_equal("turn the key", car_history[1].message)
+  assert_true(car_history[3].payload.hit_the_gas)
+  assert_true(car_history[5].success)
+  assert_equal("vroom vroom", car_history[6].output)
+  assert_false(car_history[7].success)
+
+  -- Clear the history.
+  car.state_machine:clearHistory()
+  local car_history = car.state_machine:getHistory()
+  assert_equal(0, #car_history)
+
+  -- Drive ahead and make sure the history is recorded.
+  car.state_machine:step(car, "drive", {hit_the_gas=true})
+  local car_history = car.state_machine:getHistory()
+  assert_equal(1, #car_history)
+
+  -- Pause the history. New commands should not be added.
+  car.state_machine:pauseHistory()
+  car.state_machine:step(car, "drive", {hit_the_gas=true})
+  local car_history = car.state_machine:getHistory()
+  assert_equal(1, #car_history)
+
+  -- Turn history off and clear the history. New commands should not generate records.
+  car.state_machine:turnHistoryOff(true)
+  car.state_machine:step(car, "drive", {hit_the_gas=true})
+  local car_history = car.state_machine:getHistory()
+  assert_equal(0, #car_history)
 end
-
---[[Create a car with a state machine.
-Modify the state machine so it counts the gear shifts when the state is changed.
-Switch from Driving to Parking.
-The car should have a tally of gear shifts.
-]]
-
---[[Test against state change protection?
-]]

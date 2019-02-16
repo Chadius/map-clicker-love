@@ -40,7 +40,12 @@ function StateMachine:new(args)
   newObj.current_state = nil
   newObj:reset_state()
 
-  -- TODO See if you should turn on the history.
+  -- See if you should turn on the history.
+  newObj.use_history = false
+  newObj.history = {}
+  if args.history then
+    newObj.use_history = true
+  end
   return newObj
 end
 
@@ -83,6 +88,19 @@ function StateMachine:step(caller, message, payload)
   -- Call the function.
   local is_success, status = func(self, caller, message, payload)
 
+  -- Add to the history, if requested
+  if self.use_history then
+    table.insert(
+      self.history,
+      {
+        message = message,
+        payload = payload,
+        success = is_success,
+        output = status
+      }
+    )
+  end
+
   return is_success, status
 end
 
@@ -97,7 +115,61 @@ function StateMachine:changeState(new_state)
   self.current_state = new_state
 end
 
---[[ Toggle recording history.
-]]
+function StateMachine:getHistory()
+  --[[ Returns the state history of calls and responses.
+  ]]
+
+  local copied_history = {}
+  for i, val in ipairs(self.history) do
+    event_copy = {}
+    for j, hval in pairs(self.history[i]) do
+      event_copy[j] = self.history[i][j]
+    end
+    copied_history[i] = event_copy
+  end
+  return copied_history
+end
+
+function StateMachine:clearHistory()
+  --[[Flushes the history.
+  ]]
+  local copied_history = self:getHistory()
+  self.history = {}
+  return copied_history
+end
+
+local function alterHistorySettings(self, activate_history)
+  --[[
+  ]]
+  if self.use_history and activate_history == false then
+    self.use_history = false
+  elseif self.use_history == false and activate_history == true then
+    self.use_history = true
+  end
+end
+
+function StateMachine:turnHistoryOn()
+  --[[Activates the history if it isn't on.
+  ]]
+  return self:alterHistorySettings(true)
+end
+
+function StateMachine:pauseHistory()
+  return self:turnHistoryOff(false)
+end
+
+function StateMachine:turnHistoryOff(clear)
+  --[[Turns off the history if it isn't off.
+  Args:
+    clear (boolean, optional, default=false): If true the history is cleared.
+  Returns:
+    A copy of the state machine's history.
+  ]]
+  local history_record = alterHistorySettings(self, false)
+  if clear then
+    self:clearHistory()
+  end
+  return history_record
+end
 
 return StateMachine
