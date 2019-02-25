@@ -6,6 +6,50 @@ local mapObject = nil
 local mapSelector = nil
 local graphicsContext = nil
 
+--[[ Raw notes to dump
+
+New variables
+Course
+Destination (X&Y coordinates. Map or World coordinates?)
+Wait timer
+
+Update reads
+State & Draws at postion
+Sends "Current Pos" message
+
+Drawn Unit state machine
+NOT DRAWN
+"Cicked on"
+Payload has X&Y
+- Determine if on board
+- If so, change to waiting
+Move Unit to position
+
+WAITING
+"Clicked on"
+Payload has X&Y
+- Determine if on board
+- Determine if in range
+- Chart Course to destination (Save it!)
+- Change to Moving
+- Clear >>>current point<<< to 0
+- Set next >>>X&Y destination<<
+
+MOVING
+"Current Pos"
+Payload has X&Y
+- If X&Y is at waypoint,
+- Set next >>>X&Y destination<<
+- Count >>>Timer<<<
+- If timer expires, clear timer
+-- If at end of course, state = TURN COMPLETE
+-- Else, Increment next destination
+
+TURN complete
+Count timerWhen timer expires, clear timer
+State = WAITING
+]]
+
 function love.load()
   -- Set the resolution
   love.window.setMode( 640, 480 )
