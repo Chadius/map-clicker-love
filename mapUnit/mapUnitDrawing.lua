@@ -1,8 +1,71 @@
---[[ This module handles drawing Units on the Map.
+--[[ This module handles drawing and moving Units on the Map.
 --]]
+local StateMachine = require "stateMachine/stateMachine"
 
 local MapUnitDrawing={}
 MapUnitDrawing.__index = MapUnitDrawing
+
+local function unit_not_drawn(self, owner, message, payload)
+  --[[
+  NOT DRAWN
+  "Cicked on"
+  Payload has X&Y
+  - Determine if on board
+  - If so, change to waiting
+  Move Unit to position
+  ]]
+
+  local new_message = ""
+
+  return true, new_message
+end
+
+local function unit_waiting(self, owner, message, payload)
+  --[[
+  WAITING
+  "Clicked on"
+  Payload has X&Y
+  - Determine if on board
+  - Determine if in range
+  - Chart Course to destination (Save it!)
+  - Change to Moving
+  - Clear >>>current point<<< to 0
+  - Set next >>>X&Y destination<<
+  ]]
+
+  local new_message = ""
+
+  return true, new_message
+end
+
+local function unit_moving(self, owner, message, payload)
+  --[[MOVING
+  "Current Pos"
+  Payload has X&Y
+  - If X&Y is at waypoint,
+  - Set next >>>X&Y destination<<
+  - Count >>>Timer<<<
+  - If timer expires, clear timer
+  -- If at end of course, state = TURN COMPLETE
+  -- Else, Increment next destination
+  ]]
+
+  local new_message = ""
+
+  return true, new_message
+end
+
+local function unit_turn_complete(self, owner, message, payload)
+  --[[ Handles the "turn complete" state
+  TURN COMPLETE
+  Count timerWhen timer expires, clear timer
+  State = WAITING
+  ]]
+
+  local new_message = ""
+
+  return true, new_message
+end
 
 function MapUnitDrawing:new(graphicsContext)
   --[[ Create a new object.
@@ -15,6 +78,10 @@ function MapUnitDrawing:new(graphicsContext)
   newDrawing.x = nil
   newDrawing.y = nil
 
+  newDrawing.movementCourse = nil
+  newDrawing.mapDestination = {x=nil, y=nil}
+  newDrawing.waitTimer = nil
+
   newDrawing.destination = {x=nil, y=nil}
   newDrawing.finishedMovingCallback = nil
 
@@ -25,6 +92,14 @@ function MapUnitDrawing:load(unitJson)
   return self
 end
 function MapUnitDrawing:update(dt)
+  --[[
+  TODO
+  Update reads
+  State & Draws at postion
+  Sends "Current Pos" message
+  ]]
+
+
   -- If destination is nil, return
   if self.destination.x == nil or self.destination.y == nil then
     return
