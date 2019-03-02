@@ -6,18 +6,43 @@ local MapUnitDrawing={}
 MapUnitDrawing.__index = MapUnitDrawing
 
 local function unit_not_drawn(self, owner, message, payload)
-  --[[
-  NOT DRAWN
-  "Cicked on"
-  Payload has X&Y
-  - Determine if on board
-  - If so, change to waiting
-  Move Unit to position
+  --[[ Unit has been created but not drawn yet.
   ]]
 
-  local new_message = ""
+  local response = ""
 
-  return true, new_message
+  if message != "clicked on" then
+    return false, "unknown message: " .. message
+  end
+
+  --[[message = "clicked on"
+  payload is a table:
+    destination_x: world x coordinates
+    destination_y: world y coordinates
+    finished_callback: optional callback function
+  ]]
+
+  -- Confirm payload is correct
+  local destination_x = payload.destination_x
+  local destination_y = payload.destination_y
+
+  if clicked_x == nil or clicked_y == nil then
+    return false, "payload does not have destination coordinates: " .. destination_x .. ", " .. destination_y
+  end
+
+  -- Move the unit to the given position instantly
+  owner.x = destination_x
+  owner.y = destination_y
+
+  -- Fire the callback
+  if payload.callback then
+    payload.callback()
+  end
+
+  -- Change state to "waiting"
+  self:changeState("waiting")
+
+  return true, "Moved to destination"
 end
 
 local function unit_waiting(self, owner, message, payload)
@@ -84,6 +109,9 @@ function MapUnitDrawing:new(graphicsContext)
 
   newDrawing.destination = {x=nil, y=nil}
   newDrawing.finishedMovingCallback = nil
+
+  -- TODO: Make the state machine
+  --newDrawing.stateMachine
 
   return newDrawing
 end
@@ -156,6 +184,8 @@ function MapUnitDrawing:draw()
   love.graphics.rectangle( "fill", self.x + 8, self.y + 14, 48, 48 )
 end
 function MapUnitDrawing:moveToTile(column, row, callback)
+  -- TODO Trigger the statemachine instead
+
   -- MapUnit wants to move to the given tile.
 
   -- if the column and row are nil, we're done
@@ -165,9 +195,10 @@ function MapUnitDrawing:moveToTile(column, row, callback)
 
   -- convert the column and row into the new destination
   local unitX, unitY = self.graphicsContext:getTileCoordinate(column, row)
-  self.destination.x = unitX
-  self.destination.y = unitY
   self.finishedMovingCallback = callback
+
+  -- Tell the state machine to click on the location
+  self.state_machine:step(self, "clicked on", {destination_x = unitX, destination_y = unitY})
 end
 
 return MapUnitDrawing
