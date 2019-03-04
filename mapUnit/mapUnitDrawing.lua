@@ -9,8 +9,6 @@ local function unit_not_drawn(self, owner, message, payload)
   --[[ Unit has been created but not drawn yet.
   ]]
 
-  local response = ""
-
   if message != "clicked on" then
     return false, "unknown message: " .. message
   end
@@ -34,7 +32,7 @@ local function unit_not_drawn(self, owner, message, payload)
   owner.x = destination_x
   owner.y = destination_y
 
-  -- Fire the callback
+  -- Fire the callback since we finished moving immediately.
   if payload.callback then
     payload.callback()
   end
@@ -49,24 +47,53 @@ local function unit_waiting(self, owner, message, payload)
   --[[
   WAITING
   "Clicked on"
-  Payload has X&Y
-  - Determine if on board
-  - Determine if in range
-  - Chart Course to destination (Save it!)
+
+  Payload has the course
+
   - Change to Moving
   - Clear >>>current point<<< to 0
   - Set next >>>X&Y destination<<
   ]]
 
-  local new_message = ""
+  -- Stop if the message isn't recognized
+  if message != "clicked on" then
+    return false, "unknown message: " .. message
+  end
 
-  return true, new_message
+  -- Payload should have a course
+  local course = payload.course
+
+  -- If there is no course, stop
+  if course == nil
+    return true, "No course found, not moving"
+  end
+  owner.movementCourse = course
+
+  -- Payload has a next way point (the tile location)
+  owner.movementCourseIndex = 1
+  local column = course[owner.movementCourseIndex]["column"]
+  local row = course[owner.movementCourseIndex]["row"]
+
+  if column == nil or row == nil then
+    -- If Payload doesn't have a next way point
+    return true, "No course found"
+  end
+
+  --- Set the timer to now
+  owner.waitTimer = os.clock()
+
+  --- Get the coordinates of the next tile
+  local worldX, worldY = self.graphicsContext:getTileCoordinate(column, row)
+  owner.mapDestination.x = worldX
+  owner.mapDestination.y = worldY
+  self:changeState("moving")
+  return true, "Course set, now moving"
 end
 
 local function unit_moving(self, owner, message, payload)
   --[[MOVING
   "Current Pos"
-  Payload has X&Y
+  Payload has X&Y&dt
   - If X&Y is at waypoint,
   - Set next >>>X&Y destination<<
   - Count >>>Timer<<<
@@ -75,9 +102,81 @@ local function unit_moving(self, owner, message, payload)
   -- Else, Increment next destination
   ]]
 
-  local new_message = ""
+  if message != "current position" then
+    return false, "unknown message: " .. message
+  end
 
-  return true, new_message
+  -- Payload has the unit's world position
+  local unitX = payload.position.x
+  local unitY = payload.position.y
+
+  if unitX == nil or unitY == nil then
+    return false, "position should not be nil"
+  end
+
+  if owner.waitTimer ~= nil and os.timer() - owner.waitTimer < 1 then
+    return true, "paused and waiting"
+  end
+
+  -- move towards the next destination
+  local dt = payload.dt
+  -- Move at 100 pixels per second to the destination
+  -- new = 100 * dt + old
+  if owner.x < owner.mapDestination.x then
+    owner.x = (100 * dt) + owner.x
+  elseif owner.x > owner.mapDestination.x then
+    owner.x = (-100 * dt) + owner.x
+  end
+
+  if owner.y < owner.mapDestination.y then
+    owner.y = (100 * dt) + owner.y
+  elseif owner.y > owner.mapDestination.y then
+    owner.y = (-100 * dt) + owner.y
+  end
+
+  -- Decide if unit is close enough to the waypoint.
+  -- if x is within 5 px of the x destination, set it to the destination
+  xWithinRange = false
+  if math.abs (owner.x - owner.mapDestination.x) <= 5.0 then
+    owner.x = owner.mapDestination.x
+    xWithinRange = true
+  end
+
+  -- if y is within 5 px of the y destination, set it to the destination
+  yWithinRange = false
+  if math.abs (owner.y - owner.mapDestination.y) <= 5.0 then
+    owner.y = owner.mapDestination.y
+    yWithinRange = true
+  end
+
+  -- If X&Y is at waypoint,
+  if xWithinRange and yWithinRange then
+    -- Set next >>>X&Y destination<<
+    owner.movementCourseIndex = owner.movementCourseIndex + 1
+    local column = course[owner.movementCourseIndex]["column"]
+    local row = course[owner.movementCourseIndex]["row"]
+
+    if column == nil or row == nil then
+      --- Set the timer to now
+      owner.waitTimer = os.clock()
+
+      --- If at end of course, state = TURN COMPLETE
+      if owner.finishedMovingCallback then
+        owner.finishedMovingCallback()
+      end
+
+      self:changeState("turn complete")
+      return true, "finished moving"
+    end
+
+    --- Get the coordinates of the next tile
+    local worldX, worldY = self.graphicsContext:getTileCoordinate(column, row)
+    owner.mapDestination.x = worldX
+    owner.mapDestination.y = worldY
+    return true, "setting next way point"
+  end
+
+  return true, "moving toward next point"
 end
 
 local function unit_turn_complete(self, owner, message, payload)
@@ -104,6 +203,7 @@ function MapUnitDrawing:new(graphicsContext)
   newDrawing.y = nil
 
   newDrawing.movementCourse = nil
+  newDrawing.movementCourseIndex = 0
   newDrawing.mapDestination = {x=nil, y=nil}
   newDrawing.waitTimer = nil
 
