@@ -20,17 +20,21 @@ function MapUnit:update(dt)
   self.drawing:update(dt)
 end
 function MapUnit:moveToTile(column, row)
-  -- Indicate the unit should move to the given location on the map.
-  self.mapCoordinates={column=column,row=row}
+  -- TODO Ask the map in unitMove the destination is reachable
 
-  -- Tell the graphics you want to animate the tile moving over to the destination.
-  self.drawing:moveToTile(
+  -- Tell the animation to move to the destination
+  local unit_is_moving, animation_message = self.drawing:moveToTile(
     column,
     row,
     function ()
       self:finishedMoving()
     end
   )
+
+  -- If the animation is moving, set the coordinates to the new destination
+  if unit_is_moving and animation_message == "Moving towards destination" then
+    self.mapCoordinates={column=column,row=row}
+  end
 end
 function MapUnit:finishedMoving()
   -- Function to signal the unit finished moving to the destination.

@@ -60,9 +60,15 @@ end
 function love.mousepressed(x, y, button, istouch, presses)
   -- If the left mouse button is clicked, update the map selector.
   if button == 1 then
-    local column, row = mapObject:getTileClickedOn(x, y)
+    -- Get the screen, world and map coordinates
+    local map_column, map_row = mapObject:getTileClickedOn(x, y)
+    -- Highlight the selected tile
     mapSelector:selectTile(column, row)
+
+    -- TODO Give the mapUnit the world and map coordinates
+
+
     -- Move the unit to the selected location
-    mapUnit:moveToTile(column, row)
+    --mapUnit:moveToTile(column, row)
   end
 end
