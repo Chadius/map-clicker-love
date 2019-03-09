@@ -71,7 +71,7 @@ function MapClass:drawSelectedTile(column, row)
   self.drawing:drawSelectedTile(column, row)
 end
 function MapClass:draw()
-  self.drawing:draw(self.mapTile)
+  self.drawing:draw(self.mapTile:getMap())
 end
 function MapClass:getTileClickedOn(x, y)
   return self.drawing:getTileClickedOn(x, y,
