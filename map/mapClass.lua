@@ -56,14 +56,14 @@ function MapClass:load()
     end
 
     -- Add the row.
-    mapTiles[rowIndex] = newRow
+    rawMapTiles[rowIndex] = newRow
 
     -- Increment the row counter
     rowIndex = rowIndex + 1
   end
 
   -- Copy the loaded map into the tiles.
-  self.mapTile.copyFromMapMatrix(rawMapTiles)
+  self.mapTile:copyFromMapMatrix(rawMapTiles)
 
   return self
 end
