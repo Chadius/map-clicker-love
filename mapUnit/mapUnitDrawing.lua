@@ -41,11 +41,13 @@ local function moving_state(self, owner, message, payload)
   else
     -- if x is within 5 px of the x destination, set it to the destination
     if math.abs (owner.x - owner.destination.x) <= 5.0 then
+      owner.x = owner.destination.x
       xWithinRange = true
     end
     -- if y is within 5 px of the y destination, set it to the destination
     if math.abs (owner.y - owner.destination.y) <= 5.0 then
       yWithinRange = true
+      owner.y = owner.destination.y
     end
   end
 

@@ -65,10 +65,7 @@ function love.mousepressed(x, y, button, istouch, presses)
     -- Highlight the selected tile
     mapSelector:selectTile(column, row)
 
-    -- TODO Give the mapUnit the world and map coordinates
-
-
     -- Move the unit to the selected location
-    --mapUnit:moveToTile(column, row)
+    mapUnit:moveToTile(column, row)
   end
 end
