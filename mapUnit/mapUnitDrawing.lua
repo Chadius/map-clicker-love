@@ -1,6 +1,7 @@
 --[[ This module handles drawing Units on the Map.
 --]]
 local StateMachine = require "stateMachine/stateMachine"
+local MathUtility = require "libraries/mathUtility"
 
 local MapUnitDrawing={}
 MapUnitDrawing.__index = MapUnitDrawing
@@ -51,17 +52,17 @@ local function moving_state(self, owner, message, payload)
 
     -- Interpolate.
     for i, dim in ipairs({"x", "y"}) do
-      local bounded_time = math.min(
-        math.max(
-          owner.time_elapsed,
-          0
-        ),
+      local bounded_time = MathUtility.bound(
+        owner.time_elapsed,
+        0,
         travel_time
       )
 
-      local total_distance = owner.destination[dim] - owner.start_location[dim]
-      local distance_travelled = bounded_time * total_distance / travel_time
-      owner[dim] = owner.start_location[dim] + distance_travelled
+      owner[dim] = MathUtility.lerp(
+        bounded_time,
+        0, owner.start_location[dim],
+        0.900, owner.destination[dim]
+      )
     end
     if owner.time_elapsed >= travel_time + 0.100 then
       doneWithMovement = true
