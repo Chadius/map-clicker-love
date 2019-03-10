@@ -15,6 +15,10 @@ local function ready_to_move_state(self, owner, message, payload)
     ]]
     owner.destination.x = payload.world_x
     owner.destination.y = payload.world_y
+
+    owner.start_location.x = owner.x
+    owner.start_location.y = owner.y
+
     owner.finishedMovingCallback = payload.callback
     self:changeState("moving")
     return true, "Moving towards destination"
@@ -56,6 +60,7 @@ local function moving_state(self, owner, message, payload)
     -- Move directly to the destination
     owner.x = owner.destination.x
     owner.y = owner.destination.y
+    owner.time_elapsed = 0
 
     -- Change status to "ready_to_move"
     self:changeState("ready_to_move")
@@ -64,19 +69,24 @@ local function moving_state(self, owner, message, payload)
     end
     return true, "Moved to destination"
   else
-    -- Move at 100 pixels per second to the destination
-    -- new = 100 * dt + old
+    -- Move so that you'll reach the destination in 1 second
     local dt = payload.dt
-    if owner.x < owner.destination.x then
-      owner.x = (100 * dt) + owner.x
-    elseif owner.x > owner.destination.x then
-      owner.x = (-100 * dt) + owner.x
-    end
+    owner.time_elapsed = owner.time_elapsed + dt
 
-    if owner.y < owner.destination.y then
-      owner.y = (100 * dt) + owner.y
-    elseif owner.y > owner.destination.y then
-      owner.y = (-100 * dt) + owner.y
+    -- Interpolate.
+    for i, dim in ipairs({"x", "y"}) do
+      local travel_time = 1.000
+      local bounded_time = math.min(
+        math.max(
+          owner.time_elapsed,
+          0
+        ),
+        travel_time
+      )
+
+      local total_distance = owner.destination[dim] - owner.start_location[dim]
+      local distance_travelled = owner.time_elapsed * total_distance / travel_time
+      owner[dim] = owner.start_location[dim] + distance_travelled
     end
   end
 end
@@ -92,7 +102,9 @@ function MapUnitDrawing:new(graphicsContext)
   newDrawing.x = nil
   newDrawing.y = nil
 
+  newDrawing.start_location = {x=nil, y=nil}
   newDrawing.destination = {x=nil, y=nil}
+  newDrawing.time_elapsed = 0
   newDrawing.finishedMovingCallback = nil
   newDrawing.state_machine = StateMachine:new({
     history=false,
