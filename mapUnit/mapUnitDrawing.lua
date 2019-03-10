@@ -36,46 +36,21 @@ local function moving_state(self, owner, message, payload)
   end
 
   -- Find out how close you are to the destination.
-  local xWithinRange = false
-  local yWithinRange = false
+  local doneWithMovement = false
   if owner.x == nil or owner.y == nil then
     -- If you don't have a location set, warp there instantly.
-    xWithinRange = true
-    yWithinRange = true
-  else
-    -- if x is within 5 px of the x destination, set it to the destination
-    if math.abs (owner.x - owner.destination.x) <= 5.0 then
-      owner.x = owner.destination.x
-      xWithinRange = true
-    end
-    -- if y is within 5 px of the y destination, set it to the destination
-    if math.abs (owner.y - owner.destination.y) <= 5.0 then
-      yWithinRange = true
-      owner.y = owner.destination.y
-    end
-  end
-
-  -- If you're at the destination
-  if xWithinRange and yWithinRange then
-    -- Move directly to the destination
     owner.x = owner.destination.x
     owner.y = owner.destination.y
     owner.time_elapsed = 0
-
-    -- Change status to "ready_to_move"
-    self:changeState("ready_to_move")
-    if owner.finishedMovingCallback then
-      owner.finishedMovingCallback()
-    end
-    return true, "Moved to destination"
+    doneWithMovement = true
   else
     -- Move so that you'll reach the destination in 1 second
     local dt = payload.dt
     owner.time_elapsed = owner.time_elapsed + dt
+    local travel_time = 0.900
 
     -- Interpolate.
     for i, dim in ipairs({"x", "y"}) do
-      local travel_time = 1.000
       local bounded_time = math.min(
         math.max(
           owner.time_elapsed,
@@ -85,9 +60,27 @@ local function moving_state(self, owner, message, payload)
       )
 
       local total_distance = owner.destination[dim] - owner.start_location[dim]
-      local distance_travelled = owner.time_elapsed * total_distance / travel_time
+      local distance_travelled = bounded_time * total_distance / travel_time
       owner[dim] = owner.start_location[dim] + distance_travelled
     end
+    if owner.time_elapsed >= travel_time + 0.100 then
+      doneWithMovement = true
+    else
+      return true, "en route to destination"
+    end
+  end
+
+  -- If you're at the destination
+  if doneWithMovement then
+    -- Clear the timer
+    owner.time_elapsed = 0
+
+    -- Change status to "ready_to_move"
+    self:changeState("ready_to_move")
+    if owner.finishedMovingCallback then
+      owner.finishedMovingCallback()
+    end
+    return true, "Moved to destination"
   end
 end
 
