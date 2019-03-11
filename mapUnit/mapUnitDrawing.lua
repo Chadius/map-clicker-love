@@ -124,7 +124,13 @@ function MapUnitDrawing:draw()
     return
   end
 
-  love.graphics.setColor(0.3,0.1,0.1)
+  -- Based on the current state, set the color of the sprite
+  local spriteColor = {r=0.3,g=0.1,b=0.1}
+  local animationState = self.state_machine:getState()
+  if animationState == "moving" then
+    spriteColor = {r=0.9,g=0.1,b=0.1}
+  end
+  love.graphics.setColor(spriteColor.r, spriteColor.g, spriteColor.b)
   love.graphics.rectangle( "fill", self.x + 8, self.y + 14, 48, 48 )
 end
 function MapUnitDrawing:moveToTile(column, row, callback)
