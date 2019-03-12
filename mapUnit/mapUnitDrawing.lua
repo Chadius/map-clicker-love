@@ -76,12 +76,39 @@ local function moving_state(self, owner, message, payload)
     -- Clear the timer
     owner.time_elapsed = 0
 
+    -- Change status to "pause_between_step"
+    self:changeState("pause_between_step")
+    return true, "Moved to destination"
+  end
+end
+
+local function pause_between_step_state(self, owner, message, payload)
+  --[[In "pause_between_step" handler
+  ]]
+
+  if payload.dt == nil then
+    return false, "missing dt"
+  end
+
+  -- Add dt to the total time elapsed
+  local dt = payload.dt
+  owner.time_elapsed = owner.time_elapsed + dt
+
+  -- If the time elapsed is greater than the threshold, go back to ready to move.
+  local wait_time = 0.100
+
+  if owner.time_elapsed >= wait_time then
+    -- Clear the timer
+    owner.time_elapsed = 0
+
     -- Change status to "ready_to_move"
     self:changeState("ready_to_move")
     if owner.finishedMovingCallback then
       owner.finishedMovingCallback()
     end
-    return true, "Moved to destination"
+    return true, "finished waiting"
+  else
+    return true, "just waiting"
   end
 end
 
@@ -105,6 +132,7 @@ function MapUnitDrawing:new(graphicsContext)
     states={
       ready_to_move=ready_to_move_state,
       moving=moving_state,
+      pause_between_step=pause_between_step_state,
     },
     initial_state="ready_to_move"
   })
@@ -129,6 +157,8 @@ function MapUnitDrawing:draw()
   local animationState = self.state_machine:getState()
   if animationState == "moving" then
     spriteColor = {r=0.9,g=0.1,b=0.1}
+  elseif animationState == "pause_between_step" then
+    spriteColor = {r=0.1,g=0.1,b=0.1}
   end
   love.graphics.setColor(spriteColor.r, spriteColor.g, spriteColor.b)
   love.graphics.rectangle( "fill", self.x + 8, self.y + 14, 48, 48 )

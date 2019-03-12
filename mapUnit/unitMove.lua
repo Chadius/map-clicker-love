@@ -198,12 +198,21 @@ function UnitMove:canStopOnSpace(step)
   return false
 end
 
-function UnitMove:nextWaypoint(mapUnit, course)
-  --[[ Following the course, return the next location within move distance.
+function UnitMove:nextWaypoint(mapUnit, course, get_all_steps)
+  --[[ Find the unit's furthest step along the course within move distance.
+  Args:
+    mapUnit: The unit that is trying to move across the map.
+    course: The MapPath that leads to its destination.
+    TODO get_all_steps (optional, default=false): If true, returns a table instead of the furthest step.
+      Each item in the table refers to the next step towards the furthest one.
+
+  Returns:
+    A table containing the coordinate of the furthest step.
+      If get_all_steps is true, return a table containing all of the coordinates.
   Returns nil if:
-  - Unit is not on the path
-  - Unit has completed the path and is on the end.
-  - Unit does not have enough move to actually move.
+    mapUnit is not on the path
+    mapUnit has completed the path and is on the end.
+    mapUnit does not have enough move distance to actually move forward.
   --]]
 
   if course == nil then

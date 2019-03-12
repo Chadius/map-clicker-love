@@ -14,53 +14,6 @@ else
     module( "enhanced", package.seeall, lunit.testcase )
 end
 
---[[
-RAW NOTES
-
-Situations:
-- I have 3 visions. Show everything I can see on this map
-- Can i reach this location with only 3 move? What if a wall blocks my way?
-- I want to reach this location. Give me the shortest route.
-
-Each tile asks 3 questions:
-- Can units stop on me?
-- Can units pass over me?
-- How much movement does it cost to enter my square?
-
-         | Stop? | Pass? | Cost
-Wall     | N     | N     | n/a
-Concrete | Y     | Y     | 1
-Grass    | Y     | Y     | 2
-Mud      | Y     | Y     | 3
-Pit      | N     | Y     | 1
-
-UnitMove class
-needs Map
-needs MapUnit
-- location
-- move type
-- move distance
-
-function ChartCourse(destination)
-Return a single path to the destination, assuming inifinite turns.
-Returns nil if the trip is impossible.
-
-function NextWaypoint(course)
-Following the course, return the next location within move distance.
-Returns nil if:
-- Unit is not on the path
-- Unit has completed the path and is on the end.
-- Unit does not have enough move to actually move.
-
-function GetTilesWithinMovement()
-Returns a MapSearch object showing all of the tiles within movement range.
-
-MoveType class
-TODO
-
-TODO: Add MoveType to MapUnits
-]]
-
 local testMap = nil
 local testUnit = nil
 
